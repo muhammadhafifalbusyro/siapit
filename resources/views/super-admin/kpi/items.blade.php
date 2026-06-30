@@ -356,6 +356,14 @@
             });
         });
 
+        // Submenu toggling untuk sidebar
+        document.querySelectorAll('.submenu-trigger').forEach(trigger => {
+            trigger.addEventListener('click', function() {
+                const parent = this.parentElement;
+                parent.classList.toggle('open');
+            });
+        });
+
         function resetItemForm() {
             document.getElementById('item-form-title').innerHTML = '<i class="fa-solid fa-list-check"></i> Kelola Poin target KPI';
             const form = document.getElementById('item-form');

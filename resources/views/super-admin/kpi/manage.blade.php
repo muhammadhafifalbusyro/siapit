@@ -321,15 +321,8 @@
                         </div>
 
                         @php
-                            $isOffDay = is_array($selectedPeriod->off_days) && in_array($selectedDate, $selectedPeriod->off_days);
+                            $isOffDay = false;
                         @endphp
-
-                        @if($isOffDay)
-                            <div style="margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.75rem; background: rgba(239, 68, 68, 0.08); border: 1.5px solid var(--accent-red); padding: 0.75rem 1rem; border-radius: 12px; color: var(--accent-red); font-size: 0.85rem; font-weight: 700;">
-                                <i class="fa-solid fa-circle-exclamation"></i>
-                                <span>Hari ini ({{ \Carbon\Carbon::parse($selectedDate)->translatedFormat('d F Y') }}) adalah Hari Libur / Off Day. Pengajar dibebaskan dari target.</span>
-                            </div>
-                        @endif
 
                         <form id="daily-check-form" style="display: flex; flex-direction: column; gap: 1.25rem;">
                             <div style="display: flex; flex-direction: column; gap: 1rem;">

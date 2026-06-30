@@ -7,31 +7,13 @@
     <title>Divisi Penempatan - SIAPIT</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    @vite(['resources/css/dashboard.css', 'resources/js/app.js'])
     <style>
-        :root {
-            --bg-primary: #e0e8f6;
-            --bg-secondary: #f0f4f9;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --accent-blue: #3b82f6;
-            --accent-red: #ef4444;
-            --accent-green: #10b981;
-            --font-main: 'Outfit', sans-serif;
-            
-            /* Neomorphism Shadows */
-            --nm-flat-sm: 4px 4px 8px #beccd7, -4px -4px 8px #ffffff;
-            --nm-flat-md: 8px 8px 16px #beccd7, -8px -8px 16px #ffffff;
-            --nm-inset-sm: inset 4px 4px 8px #beccd7, inset -4px -4px 8px #ffffff;
-            --nm-flat-hover: 5px 5px 10px #beccd7, -5px -5px 10px #ffffff;
-            
-            --transition: all 0.3s ease;
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: var(--font-main);
+            font-family: var(--font-body);
         }
 
         body {

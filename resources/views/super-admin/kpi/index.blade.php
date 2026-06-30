@@ -320,7 +320,7 @@
                                 <td style="padding: 0.25rem 0; color: var(--text-secondary); font-weight: 700;">Rentang Waktu</td>
                                 <td style="padding: 0.25rem 0; font-weight: 600; color: var(--text-primary);" id="rep-period-range">-</td>
                             </tr>
-                            <tr>
+                            <tr style="display: none;">
                                 <td style="padding: 0.25rem 0; color: var(--text-secondary); font-weight: 700;">Hari Efektif</td>
                                 <td style="padding: 0.25rem 0; font-weight: 800; color: var(--accent-blue);" id="rep-effective-days">-</td>
                             </tr>
@@ -352,7 +352,7 @@
                     </table>
                 </div>
 
-                <!-- Weekly Summary Section -->
+                 <!-- Weekly Summary Section -->
                 <h4 style="font-family: var(--font-heading); font-weight: 800; color: var(--text-primary); font-size: 1.1rem; margin: 2rem 0 0.75rem 0; text-align: left;">Ringkasan Kinerja Per Pekan</h4>
                 <div class="table-container" style="box-shadow: none; border: 1.5px solid #d1d9e6; margin-bottom: 2rem;">
                     <table style="width: 100%;">
@@ -360,8 +360,6 @@
                             <tr style="background: var(--bg-primary);">
                                 <th style="padding: 0.75rem 1rem; text-align: left;">Pekan Ke-</th>
                                 <th style="padding: 0.75rem 1rem; text-align: left;">Rentang Tanggal</th>
-                                <th style="width: 120px; text-align: center; padding: 0.75rem 1rem;">Hari Efektif</th>
-                                <th style="width: 120px; text-align: center; padding: 0.75rem 1rem;">Hari Libur</th>
                                 <th style="width: 120px; text-align: right; padding: 0.75rem 1rem;">Nilai Pekan</th>
                             </tr>
                         </thead>
@@ -544,7 +542,7 @@
                         document.getElementById('rep-email').textContent = data.teacher.email;
                         document.getElementById('rep-period-name').textContent = data.period.name;
                         document.getElementById('rep-period-range').textContent = `${data.period.start_date} s/d ${data.period.end_date} (${data.total_days} Hari)`;
-                        document.getElementById('rep-effective-days').textContent = `${data.effective_days} Hari Aktif (${data.period.off_days ? data.period.off_days.length : 0} Hari Libur)`;
+                        document.getElementById('rep-effective-days').textContent = `-`;
                         document.getElementById('rep-sign-name').textContent = data.teacher.name;
 
                         document.getElementById('rep-total-weight').textContent = `${data.total_weight}%`;
@@ -553,15 +551,22 @@
                         const tbody = document.getElementById('report-items-body');
                         tbody.innerHTML = '';
 
-                         data.report_data.forEach(row => {
+                        data.report_data.forEach(row => {
+                            const effectiveDays = row.effective_days ?? '-';
+                            const checkedDays   = row.checked_days ?? 0;
+                            const percentage    = (row.percentage != null) ? parseFloat(row.percentage).toFixed(1) : '0.0';
+                            const weightedScore = (row.weighted_score != null) ? parseFloat(row.weighted_score).toFixed(2) : '0.00';
+                            const weight        = row.item ? row.item.weight : '-';
+                            const itemName      = row.item ? row.item.name : '-';
+
                             tbody.innerHTML += `
                                 <tr>
                                     <td style="padding: 0.75rem 1rem;">
-                                        <div style="font-weight: 700; color: var(--text-primary);">${row.item.name}</div>
+                                        <div style="font-weight: 700; color: var(--text-primary);">${itemName}</div>
                                     </td>
-                                    <td style="text-align: center; font-weight: 700; color: var(--text-secondary);">${row.item.weight}%</td>
-                                    <td style="text-align: center; font-weight: 700; color: var(--text-secondary);">${row.checked_days} / ${data.effective_days} Hari (${row.percentage.toFixed(1)}%)</td>
-                                    <td style="text-align: right; font-weight: 800; color: var(--text-primary);">${row.weighted_score.toFixed(2)}%</td>
+                                    <td style="text-align: center; font-weight: 700; color: var(--text-secondary);">${weight}%</td>
+                                    <td style="text-align: center; font-weight: 700; color: var(--text-secondary);">${checkedDays} / ${effectiveDays} Hari (${percentage}%)</td>
+                                    <td style="text-align: right; font-weight: 800; color: var(--text-primary);">${weightedScore}%</td>
                                 </tr>
                             `;
                         });
@@ -571,18 +576,17 @@
                         weeksBody.innerHTML = '';
                         if (data.weeks && data.weeks.length > 0) {
                             data.weeks.forEach(wk => {
+                                const score = (wk.score != null) ? parseFloat(wk.score).toFixed(2) : '0.00';
                                 weeksBody.innerHTML += `
                                     <tr>
                                         <td style="padding: 0.75rem 1rem; font-weight: 700; color: var(--text-primary);">Pekan ${wk.week_number}</td>
                                         <td style="padding: 0.75rem 1rem; font-weight: 600; color: var(--text-secondary);">${wk.start_date} s/d ${wk.end_date}</td>
-                                        <td style="text-align: center; font-weight: 700; color: var(--text-secondary);">${wk.effective_days} Hari</td>
-                                        <td style="text-align: center; font-weight: 700; color: var(--text-secondary);">${wk.off_days} Hari</td>
-                                        <td style="text-align: right; font-weight: 800; color: var(--accent-blue);">${wk.score.toFixed(2)}%</td>
+                                        <td style="text-align: right; font-weight: 800; color: var(--accent-blue);">${score}%</td>
                                     </tr>
                                 `;
                             });
                         } else {
-                            weeksBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); font-style: italic; padding: 1rem 0;">Tidak ada data pekan.</td></tr>';
+                            weeksBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-secondary); font-style: italic; padding: 1rem 0;">Tidak ada data pekan.</td></tr>';
                         }
 
                         document.getElementById('report-modal-overlay').style.display = 'flex';

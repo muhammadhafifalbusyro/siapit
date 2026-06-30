@@ -8,19 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     @vite(['resources/css/dashboard.css', 'resources/js/app.js'])
     <style>
-        :root {
-            --bg-primary: #e0e8f6;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --accent-green: #10b981;
-            --accent-orange: #f59e0b;
-            --accent-blue: #3b82f6;
-            --accent-red: #ef4444;
-            
-            --nm-flat-md: 8px 8px 16px #beccd7, -8px -8px 16px #ffffff;
-            --nm-inset-sm: inset 4px 4px 8px #beccd7, inset -4px -4px 8px #ffffff;
-        }
-
         body {
             background-color: var(--bg-primary);
             color: var(--text-primary);

@@ -342,12 +342,21 @@
                                         {{ $jd->name }} ({{ $jd->items->count() }} Poin KPI)
                                     </div>
                                 @endforeach
-                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI Items & Off Days Settings Container (Dinamis via JS) -->
+                    <div id="kpi-items-offdays-section" style="display: none; flex-direction: column; gap: 0.75rem;">
+                        <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);"><i class="fa-solid fa-calendar-xmark" style="color: var(--accent-blue);"></i> Pengaturan Hari Libur (Off-Days) per Poin KPI</label>
+                        <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Pilih tanggal di mana poin KPI tersebut <b>tidak aktif</b> (libur) untuk pengajar ini. Gunakan tombol bulan untuk navigasi kalender di tiap item.</p>
+                        
+                        <div id="kpi-items-offdays-container" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <!-- Dinamis via JS -->
                         </div>
                     </div>
 
                     <!-- Submit Button -->
-                    <div style="display: flex; justify-content: flex-end; margin-top: 2rem;">
+                    <div style="display: flex; justify-content: flex-end; margin-top: 2rem; margin-bottom:2rem">
                         <button type="submit" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); display: inline-flex; align-items: center; justify-content: center; height: 42px; border-radius: 10px; padding: 0 2rem; cursor: pointer; color: var(--accent-blue); transition: var(--transition); font-weight: 850; font-size: 0.9rem; gap: 0.5rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'">
                             <i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan
                         </button>
@@ -359,7 +368,21 @@
     </div>
 
     <script>
-        // Custom select dropdown triggers
+        // Data from PHP
+        const allJobdescs = @json($jobdescs);
+        const allPeriods = @json($periods);
+        const savedOffDays = @json($assignmentOffDays); // [period_id][item_id] => ['Y-m-d', ...]
+        const assignedPeriodIds = @json($assignedPeriodIds);
+
+        // Track currently selected period IDs (from checkboxes)
+        function getSelectedPeriodIds() {
+            return Array.from(document.querySelectorAll('input[name="teacher_kpi_period_ids[]"]:checked')).map(cb => parseInt(cb.value));
+        }
+
+        // Calendar state per item
+        const calendarState = {}; // item_id => { year, month }
+
+        // ---- Custom Jobdesc Select Dropdown ----
         const selectContainer = document.getElementById('custom-jobdesc-select');
         const selectDropdown = document.getElementById('custom-jobdesc-dropdown');
         const searchInput = document.getElementById('jobdesc-search-input');
@@ -368,11 +391,8 @@
         function toggleDropdown(event) {
             event.stopPropagation();
             const isOpen = selectContainer.classList.contains('open');
-            if (isOpen) {
-                closeDropdown();
-            } else {
-                openDropdown();
-            }
+            if (isOpen) closeDropdown();
+            else openDropdown();
         }
 
         function openDropdown() {
@@ -386,46 +406,224 @@
             selectDropdown.classList.remove('show');
         }
 
-        // Filter option list during typing
         function filterOptions(query) {
             openDropdown();
             const lowerQuery = query.toLowerCase().trim();
-            const options = selectDropdown.querySelectorAll('.custom-select-option');
-            
-            options.forEach(opt => {
+            selectDropdown.querySelectorAll('.custom-select-option').forEach(opt => {
                 const optName = opt.getAttribute('data-name');
-                if (!optName) return; // skip default select option
-                if (optName.includes(lowerQuery)) {
-                    opt.style.display = 'block';
-                } else {
-                    opt.style.display = 'none';
-                }
+                if (!optName) return;
+                opt.style.display = optName.includes(lowerQuery) ? 'block' : 'none';
             });
         }
 
-        // Click handler to select option
         function selectOption(element, event) {
             event.stopPropagation();
             const value = element.getAttribute('data-value');
             const text = element.textContent.trim();
 
             hiddenInput.value = value;
-            searchInput.value = value === "" ? "" : text;
+            searchInput.value = value === '' ? '' : text;
 
-            // Update selected class styling
-            selectDropdown.querySelectorAll('.custom-select-option').forEach(opt => {
-                opt.classList.remove('selected');
-            });
+            selectDropdown.querySelectorAll('.custom-select-option').forEach(opt => opt.classList.remove('selected'));
             element.classList.add('selected');
 
             closeDropdown();
+            renderOffDaysSection(value ? parseInt(value) : null);
         }
 
-        // Close dropdown when click outside
         document.addEventListener('click', function(e) {
-            if (!selectContainer.contains(e.target)) {
-                closeDropdown();
+            if (!selectContainer.contains(e.target)) closeDropdown();
+        });
+
+        // ---- Period checkboxes: re-render when changed ----
+        document.querySelectorAll('input[name="teacher_kpi_period_ids[]"]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                const jobdescId = hiddenInput.value ? parseInt(hiddenInput.value) : null;
+                renderOffDaysSection(jobdescId);
+            });
+        });
+
+        // ---- Render Off-Days Section ----
+        function renderOffDaysSection(jobdescId) {
+            const section = document.getElementById('kpi-items-offdays-section');
+            const container = document.getElementById('kpi-items-offdays-container');
+            container.innerHTML = '';
+
+            if (!jobdescId) {
+                section.style.display = 'none';
+                return;
             }
+
+            const jd = allJobdescs.find(j => j.id === jobdescId);
+            if (!jd || !jd.items || jd.items.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            const selectedPeriodIds = getSelectedPeriodIds();
+            if (selectedPeriodIds.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'flex';
+
+            jd.items.forEach(item => {
+                const itemCard = document.createElement('div');
+                itemCard.style.cssText = 'background: var(--bg-primary); box-shadow: var(--nm-flat-sm); border-radius: 14px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;';
+
+                // Item header
+                const header = document.createElement('div');
+                header.style.cssText = 'display: flex; align-items: center; gap: 0.5rem;';
+                header.innerHTML = `<span style="font-weight: 800; font-size: 0.9rem; color: var(--text-primary);"><i class="fa-solid fa-check-square" style="color: var(--accent-blue);"></i> ${item.name}</span><span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; margin-left: auto;">Bobot: ${item.weight}%</span>`;
+                itemCard.appendChild(header);
+
+                // Per period calendars
+                selectedPeriodIds.forEach(periodId => {
+                    const period = allPeriods.find(p => p.id === periodId);
+                    if (!period) return;
+
+                    const calKey = `${periodId}_${item.id}`;
+                    if (!calendarState[calKey]) {
+                        const start = new Date(period.start_date + 'T00:00:00');
+                        calendarState[calKey] = { year: start.getFullYear(), month: start.getMonth() };
+                    }
+
+                    const existingOffDays = (savedOffDays[periodId] && savedOffDays[periodId][item.id]) ? savedOffDays[periodId][item.id] : [];
+
+                    const periodWrap = document.createElement('div');
+                    periodWrap.setAttribute('data-cal-key', calKey);
+                    periodWrap.setAttribute('data-period-id', periodId);
+                    periodWrap.setAttribute('data-item-id', item.id);
+                    periodWrap.setAttribute('data-period-start', period.start_date);
+                    periodWrap.setAttribute('data-period-end', period.end_date);
+                    periodWrap.style.cssText = 'background: var(--bg-secondary); border-radius: 10px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;';
+                    periodWrap.innerHTML = `<div style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.25rem;"><i class="fa-solid fa-calendar-days"></i> ${period.name} <span style="font-weight: 500;">(${period.start_date} s/d ${period.end_date})</span></div>`;
+
+                    const calDiv = document.createElement('div');
+                    calDiv.className = 'offday-calendar';
+                    calDiv.setAttribute('data-cal-key', calKey);
+                    renderCalendar(calDiv, calKey, item.id, periodId, period.start_date, period.end_date, existingOffDays);
+                    periodWrap.appendChild(calDiv);
+
+                    itemCard.appendChild(periodWrap);
+                });
+
+                container.appendChild(itemCard);
+            });
+        }
+
+        // ---- Render mini calendar for a specific period + item ----
+        function renderCalendar(container, calKey, itemId, periodId, startDate, endDate, currentOffDays) {
+            container.innerHTML = '';
+            const state = calendarState[calKey];
+            const year = state.year;
+            const month = state.month;
+
+            const periodStart = new Date(startDate + 'T00:00:00');
+            const periodEnd = new Date(endDate + 'T00:00:00');
+
+            // Month nav header
+            const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+            const navHeader = document.createElement('div');
+            navHeader.style.cssText = 'display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;';
+            navHeader.innerHTML = `
+                <button type="button" onclick="prevMonth('${calKey}', ${itemId}, ${periodId}, '${startDate}', '${endDate}')" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); border-radius: 6px; width: 24px; height: 24px; cursor: pointer; color: var(--text-secondary); font-size: 0.7rem; display:flex; align-items:center; justify-content:center;">&lt;</button>
+                <span style="font-size: 0.78rem; font-weight: 800; color: var(--text-primary);">${monthNames[month]} ${year}</span>
+                <button type="button" onclick="nextMonth('${calKey}', ${itemId}, ${periodId}, '${startDate}', '${endDate}')" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); border-radius: 6px; width: 24px; height: 24px; cursor: pointer; color: var(--text-secondary); font-size: 0.7rem; display:flex; align-items:center; justify-content:center;">&gt;</button>
+            `;
+            container.appendChild(navHeader);
+
+            // Day labels
+            const dayNames = ['M','S','R','K','J','S','A'];
+            const dayGrid = document.createElement('div');
+            dayGrid.style.cssText = 'display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;';
+            dayNames.forEach(d => {
+                const lbl = document.createElement('div');
+                lbl.style.cssText = 'text-align: center; font-size: 0.65rem; font-weight: 700; color: var(--text-secondary); padding: 2px 0;';
+                lbl.textContent = d;
+                dayGrid.appendChild(lbl);
+            });
+
+            // First day offset (0=Sun, shift to Mon=0)
+            const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+            const startOffset = (firstDay === 0) ? 6 : firstDay - 1; // Mon=0..Sun=6
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Blanks before first
+            for (let i = 0; i < startOffset; i++) {
+                const blank = document.createElement('div');
+                dayGrid.appendChild(blank);
+            }
+
+            // Day cells
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const dateObj = new Date(dateStr + 'T00:00:00');
+                const inPeriod = dateObj >= periodStart && dateObj <= periodEnd;
+                const isChecked = currentOffDays.includes(dateStr);
+
+                if (!inPeriod) {
+                    const cell = document.createElement('div');
+                    cell.style.cssText = 'text-align: center; font-size: 0.7rem; padding: 3px 0; color: var(--text-secondary); opacity: 0.3;';
+                    cell.textContent = d;
+                    dayGrid.appendChild(cell);
+                } else {
+                    const label = document.createElement('label');
+                    label.style.cssText = `display: flex; align-items: center; justify-content: center; border-radius: 5px; cursor: pointer; font-size: 0.7rem; font-weight: 700; padding: 3px 0; transition: background 0.15s; background: ${isChecked ? 'var(--accent-blue)' : 'transparent'}; color: ${isChecked ? '#fff' : 'var(--text-primary)'};`;
+                    label.title = dateStr;
+
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.name = `off_days[${periodId}][${itemId}][]`;
+                    cb.value = dateStr;
+                    cb.checked = isChecked;
+                    cb.style.display = 'none';
+                    cb.addEventListener('change', function() {
+                        if (this.checked) {
+                            label.style.background = 'var(--accent-blue)';
+                            label.style.color = '#fff';
+                        } else {
+                            label.style.background = 'transparent';
+                            label.style.color = 'var(--text-primary)';
+                        }
+                    });
+
+                    label.appendChild(cb);
+                    label.appendChild(document.createTextNode(d));
+                    dayGrid.appendChild(label);
+                }
+            }
+
+            container.appendChild(dayGrid);
+        }
+
+        function prevMonth(calKey, itemId, periodId, startDate, endDate) {
+            const state = calendarState[calKey];
+            if (state.month === 0) { state.month = 11; state.year--; }
+            else { state.month--; }
+            refreshCalendar(calKey, itemId, periodId, startDate, endDate);
+        }
+
+        function nextMonth(calKey, itemId, periodId, startDate, endDate) {
+            const state = calendarState[calKey];
+            if (state.month === 11) { state.month = 0; state.year++; }
+            else { state.month++; }
+            refreshCalendar(calKey, itemId, periodId, startDate, endDate);
+        }
+
+        function refreshCalendar(calKey, itemId, periodId, startDate, endDate) {
+            // Collect current checked off days before re-render
+            const calContainer = document.querySelector(`.offday-calendar[data-cal-key="${calKey}"]`);
+            if (!calContainer) return;
+            const currentOffDays = Array.from(calContainer.querySelectorAll('input[type=checkbox]:checked')).map(cb => cb.value);
+            renderCalendar(calContainer, calKey, itemId, periodId, startDate, endDate, currentOffDays);
+        }
+
+        // ---- Init on page load ----
+        window.addEventListener('DOMContentLoaded', () => {
+            const initJobdescId = hiddenInput.value ? parseInt(hiddenInput.value) : null;
+            if (initJobdescId) renderOffDaysSection(initJobdescId);
         });
     </script>
 </body>

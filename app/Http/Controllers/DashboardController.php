@@ -4536,11 +4536,18 @@ class DashboardController extends Controller
             }
         }
 
-        // Load Assigned Items for this teacher in this period
-        $assignedItems = \App\Models\TeacherKpiAssignment::where('user_id', $user->id)
+        // Load Assigned Items for this teacher in this period, and filter those that do NOT have selectedDate in their off_days
+        $assignments = \App\Models\TeacherKpiAssignment::where('user_id', $user->id)
             ->where('teacher_kpi_period_id', $selectedPeriodId)
-            ->pluck('teacher_kpi_item_id')
-            ->toArray();
+            ->get();
+            
+        $assignedItems = [];
+        foreach ($assignments as $asg) {
+            $offDays = is_array($asg->off_days) ? $asg->off_days : [];
+            if (!in_array($selectedDate, $offDays)) {
+                $assignedItems[] = $asg->teacher_kpi_item_id;
+            }
+        }
 
         $items = \App\Models\TeacherKpiItem::whereIn('id', $assignedItems)->get();
 
@@ -4888,11 +4895,18 @@ class DashboardController extends Controller
         $items = [];
         $logs = [];
         if ($selectedPeriod) {
-            // Fetch only items assigned to this teacher in this period
-            $assignedItemIds = \App\Models\TeacherKpiAssignment::where('user_id', $teacher_id)
+            // Fetch assignments to this teacher in this period, and filter those that do NOT have selectedDate in their off_days
+            $assignments = \App\Models\TeacherKpiAssignment::where('user_id', $teacher_id)
                 ->where('teacher_kpi_period_id', $selectedPeriodId)
-                ->pluck('teacher_kpi_item_id')
-                ->toArray();
+                ->get();
+                
+            $assignedItemIds = [];
+            foreach ($assignments as $asg) {
+                $offDays = is_array($asg->off_days) ? $asg->off_days : [];
+                if (!in_array($selectedDate, $offDays)) {
+                    $assignedItemIds[] = $asg->teacher_kpi_item_id;
+                }
+            }
                 
             $items = \App\Models\TeacherKpiItem::whereIn('id', $assignedItemIds)->get();
             
@@ -5065,7 +5079,14 @@ class DashboardController extends Controller
             ->unique()
             ->toArray();
 
-        return view('super-admin.kpi.settings', compact('user', 'teacher', 'periods', 'jobdescs', 'assignedPeriodIds', 'assignedJobdescIds'));
+        // Load all assignments with off_days, keyed by [period_id][item_id]
+        $assignmentsRaw = \App\Models\TeacherKpiAssignment::where('user_id', $teacher_id)->get();
+        $assignmentOffDays = []; // [period_id][item_id] => [off_days array]
+        foreach ($assignmentsRaw as $asg) {
+            $assignmentOffDays[$asg->teacher_kpi_period_id][$asg->teacher_kpi_item_id] = is_array($asg->off_days) ? $asg->off_days : [];
+        }
+
+        return view('super-admin.kpi.settings', compact('user', 'teacher', 'periods', 'jobdescs', 'assignedPeriodIds', 'assignedJobdescIds', 'assignmentOffDays'));
     }
 
     public function kpiSettingsSave(Request $request, $teacher_id)
@@ -5078,6 +5099,8 @@ class DashboardController extends Controller
 
         $periodIds = $request->input('teacher_kpi_period_ids', []);
         $jobdescId = $request->assigned_jobdesc_id;
+        // off_days[period_id][item_id] = ['2025-06-01', '2025-06-02', ...]
+        $offDaysInput = $request->input('off_days', []);
 
         // Get all KPI items that belong to the selected jobdesc ID
         $assignedItemIds = \App\Models\TeacherKpiItem::where('teacher_kpi_jobdesc_id', $jobdescId)
@@ -5089,10 +5112,16 @@ class DashboardController extends Controller
 
         foreach ($periodIds as $periodId) {
             foreach ($assignedItemIds as $itemId) {
+                $offDays = $offDaysInput[$periodId][$itemId] ?? [];
+                // Ensure it's an array of date strings
+                if (!is_array($offDays)) {
+                    $offDays = [];
+                }
                 \App\Models\TeacherKpiAssignment::create([
                     'user_id' => $teacher_id,
                     'teacher_kpi_period_id' => $periodId,
                     'teacher_kpi_item_id' => $itemId,
+                    'off_days' => $offDays,
                 ]);
             }
         }
@@ -5141,11 +5170,13 @@ class DashboardController extends Controller
         $teacher = \App\Models\User::where('role', 'pengajar')->findOrFail($teacher_id);
         $period = \App\Models\TeacherKpiPeriod::findOrFail($period_id);
 
-        // Fetch assigned items for this teacher in this period
-        $assignedItemIds = \App\Models\TeacherKpiAssignment::where('user_id', $teacher_id)
+        // Fetch assignments for this teacher in this period (with off_days per item)
+        $assignments = \App\Models\TeacherKpiAssignment::where('user_id', $teacher_id)
             ->where('teacher_kpi_period_id', $period_id)
-            ->pluck('teacher_kpi_item_id')
-            ->toArray();
+            ->get()
+            ->keyBy('teacher_kpi_item_id'); // keyed by item_id
+
+        $assignedItemIds = $assignments->keys()->toArray();
 
         $items = \App\Models\TeacherKpiItem::whereIn('id', $assignedItemIds)
             ->with(['logs' => function($query) use ($teacher_id) {
@@ -5153,56 +5184,64 @@ class DashboardController extends Controller
             }])
             ->get();
 
-        // Calculate total days and effective days in period
+        // Calculate total days in period
         $start = \Carbon\Carbon::parse($period->start_date);
         $end = \Carbon\Carbon::parse($period->end_date);
         $totalDays = $start->diffInDays($end) + 1;
-        
-        $offDaysCount = is_array($period->off_days) ? count($period->off_days) : 0;
-        $effectiveDays = $totalDays - $offDaysCount;
-        if ($effectiveDays <= 0) {
-            $effectiveDays = 1;
-        }
 
         $reportData = [];
         $totalWeightedScore = 0;
         $totalWeight = 0;
 
         foreach ($items as $item) {
-            // Count checked days
-            $checkedDays = $item->logs->where('is_checked', true)->count();
-            
-            // Percentage of completion based on effective days, capped at 100%
-            $percentage = ($checkedDays / $effectiveDays) * 100;
+            // Get off_days specific to this item's assignment
+            $assignment = $assignments->get($item->id);
+            $itemOffDays = ($assignment && is_array($assignment->off_days)) ? $assignment->off_days : [];
+
+            // Effective days = total days minus this item's off days
+            $itemEffectiveDays = $totalDays - count($itemOffDays);
+            if ($itemEffectiveDays <= 0) {
+                $itemEffectiveDays = 1;
+            }
+
+            // Count checked days (only those not in off_days)
+            $checkedDays = $item->logs
+                ->where('is_checked', true)
+                ->filter(fn($log) => !in_array($log->date, $itemOffDays))
+                ->count();
+
+            // Percentage of completion, capped at 100%
+            $percentage = ($checkedDays / $itemEffectiveDays) * 100;
             $percentage = min(100, $percentage);
-            
+
             // Weighted score
             $weightedScore = ($percentage * $item->weight) / 100;
-            
+
             $reportData[] = [
-                'item' => $item,
-                'checked_days' => $checkedDays,
-                'percentage' => $percentage,
-                'weighted_score' => $weightedScore
+                'item'           => $item,
+                'checked_days'   => $checkedDays,
+                'effective_days' => $itemEffectiveDays,
+                'off_days_count' => count($itemOffDays),
+                'percentage'     => round($percentage, 2),
+                'weighted_score' => round($weightedScore, 2),
             ];
 
             $totalWeightedScore += $weightedScore;
             $totalWeight += $item->weight;
         }
 
-        // Calculate weekly summaries based on calendar weeks (pekan berjalan, Mon-Sun)
+        // Calculate weekly summaries based on calendar weeks (Mon–Sun)
         $weeks = [];
         $currentDate = $start->copy();
         $weekNumber = 1;
 
         while ($currentDate->lte($end)) {
-            // End of current calendar week (Sunday), capped by period end
             $endOfWeek = $currentDate->copy()->endOfWeek(); // Sunday
             if ($endOfWeek->gt($end)) {
                 $endOfWeek = $end->copy();
             }
 
-            // Generate list of dates in this week
+            // Dates in this week
             $weekDates = [];
             $tempDate = $currentDate->copy();
             while ($tempDate->lte($endOfWeek)) {
@@ -5210,54 +5249,47 @@ class DashboardController extends Controller
                 $tempDate->addDay();
             }
 
-            // Calculate effective days for this week
-            $weekOffDays = array_intersect($weekDates, $period->off_days ?? []);
-            $weekEffectiveDays = count($weekDates) - count($weekOffDays);
-
-            // Calculate score for this week
+            // Per-item weekly score (each item has its own off_days)
             $weekTotalWeightedScore = 0;
 
-            if ($weekEffectiveDays > 0) {
-                foreach ($items as $item) {
-                    // Count checked days in this week
-                    $checkedInWeek = $item->logs
-                        ->where('is_checked', true)
-                        ->whereIn('date', $weekDates)
-                        ->count();
+            foreach ($items as $item) {
+                $assignment = $assignments->get($item->id);
+                $itemOffDays = ($assignment && is_array($assignment->off_days)) ? $assignment->off_days : [];
 
-                    $itemWeekPercentage = ($checkedInWeek / $weekEffectiveDays) * 100;
-                    $itemWeekPercentage = min(100, $itemWeekPercentage);
+                $weekActiveDates = array_diff($weekDates, $itemOffDays);
+                $weekEffectiveDays = count($weekActiveDates);
 
-                    $itemWeekWeightedScore = ($itemWeekPercentage * $item->weight) / 100;
-                    $weekTotalWeightedScore += $itemWeekWeightedScore;
-                }
+                if ($weekEffectiveDays <= 0) continue;
+
+                $checkedInWeek = $item->logs
+                    ->where('is_checked', true)
+                    ->whereIn('date', array_values($weekActiveDates))
+                    ->count();
+
+                $itemWeekPercentage = min(100, ($checkedInWeek / $weekEffectiveDays) * 100);
+                $weekTotalWeightedScore += ($itemWeekPercentage * $item->weight) / 100;
             }
 
             $weeks[] = [
-                'week_number' => $weekNumber,
-                'start_date' => $currentDate->format('d M Y'),
-                'end_date' => $endOfWeek->format('d M Y'),
-                'effective_days' => $weekEffectiveDays,
-                'off_days' => count($weekOffDays),
-                'score' => round($weekTotalWeightedScore, 2)
+                'week_number'    => $weekNumber,
+                'start_date'     => $currentDate->format('d M Y'),
+                'end_date'       => $endOfWeek->format('d M Y'),
+                'score'          => round($weekTotalWeightedScore, 2),
             ];
 
             $weekNumber++;
-            
-            // Advance to next Monday
             $currentDate = $endOfWeek->copy()->addDay();
         }
 
         return response()->json([
-            'success' => true,
-            'teacher' => $teacher,
-            'period' => $period,
-            'total_days' => $totalDays,
-            'effective_days' => $effectiveDays,
-            'report_data' => $reportData,
-            'total_weighted_score' => $totalWeightedScore,
-            'total_weight' => $totalWeight,
-            'weeks' => $weeks
+            'success'              => true,
+            'teacher'              => $teacher,
+            'period'               => $period,
+            'total_days'           => $totalDays,
+            'report_data'          => $reportData,
+            'total_weighted_score' => round($totalWeightedScore, 2),
+            'total_weight'         => $totalWeight,
+            'weeks'                => $weeks,
         ]);
     }
 }

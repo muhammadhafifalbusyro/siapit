@@ -7,33 +7,6 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     @vite(['resources/css/dashboard.css', 'resources/js/app.js'])
-    <style>
-        /* Neumorphic Toast */
-        .nm-toast {
-            background: var(--bg-primary);
-            box-shadow: 6px 6px 12px #beccd7, -6px -6px 12px #ffffff;
-            border-radius: 12px;
-            padding: 1rem 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-weight: 700;
-            font-size: 0.9rem;
-            color: var(--accent-green);
-            pointer-events: auto;
-            min-width: 300px;
-            transform: translateY(-20px);
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .nm-toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        .nm-toast.error {
-            color: var(--accent-red);
-        }
-    </style>
 </head>
 <body>
 
@@ -175,10 +148,10 @@
             <header class="main-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                 <div class="welcome-section">
                     <h1>Manajemen Periode KPI</h1>
-                    <p>Atur periode evaluasi penilaian kinerja mentor/pengajar beserta hari libur resminya.</p>
+                    <p>Kelola periode penilaian kinerja harian pengajar.</p>
                 </div>
                 <a href="{{ route('super-admin.kpi.index') }}" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); display: inline-flex; align-items: center; justify-content: center; height: 38px; border-radius: 8px; padding: 0 1.25rem; cursor: pointer; color: var(--text-secondary); transition: var(--transition); text-decoration: none; font-weight: 700; gap: 0.35rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'">
-                    <i class="fa-solid fa-arrow-left"></i> Kembali Ke List Pengajar
+                    <i class="fa-solid fa-arrow-left"></i> Kembali
                 </a>
             </header>
 
@@ -188,213 +161,167 @@
                 </div>
             @endif
 
-            <div class="dashboard-grid">
-                <!-- Left: Form CRUD Period -->
-                <div class="dashboard-panel">
-                    <h3 class="panel-title" id="period-form-title"><i class="fa-solid fa-calendar-plus"></i> Tambah Periode KPI</h3>
-                    <form id="period-form" method="POST" action="{{ route('super-admin.kpi.periods.store') }}" style="display: flex; flex-direction: column; gap: 1.25rem;">
-                        @csrf
-                        <input type="hidden" name="_method" id="period-form-method" value="POST">
-                        
-                        <div class="input-group">
-                            <label>Nama Periode</label>
-                            <div class="input-wrapper">
-                                <input type="text" name="name" id="period-name" required placeholder="Contoh: Juli 2026 / Triwulan I">
-                            </div>
-                        </div>
-                        
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div class="input-group">
-                                <label>Tanggal Mulai</label>
-                                <div class="input-wrapper">
-                                    <input type="date" name="start_date" id="period-start-date" required>
-                                </div>
-                            </div>
-                            <div class="input-group">
-                                <label>Tanggal Selesai</label>
-                                <div class="input-wrapper">
-                                    <input type="date" name="end_date" id="period-end-date" required>
-                                </div>
-                            </div>
-                        </div>
+            @if($errors->any())
+                <div style="background: #fee2e2; color: #991b1b; padding: 1rem 1.5rem; border-radius: 12px; font-weight: 700; margin-bottom: 1.5rem; box-shadow: var(--nm-flat-sm);">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <ul style="margin: 0.5rem 0 0 1rem; padding: 0;">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-                        <div class="input-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            <label>Pilih Hari Libur / Off Day (Tanggal Merah & Akhir Pekan)</label>
-                            <div id="off-days-checklist-container" style="max-height: 200px; overflow-y: auto; padding: 0.75rem; border-radius: 12px; background: var(--bg-primary); box-shadow: var(--nm-inset-sm); display: flex; flex-direction: column; gap: 0.5rem;">
-                                <span style="font-size: 0.8rem; color: var(--text-secondary); font-style: italic;">Pilih tanggal mulai & selesai terlebih dahulu...</span>
+            <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem; align-items: start;">
+
+                <!-- FORM TAMBAH PERIODE -->
+                <div class="dashboard-panel" style="background: var(--bg-primary); box-shadow: var(--nm-flat-sm); border-radius: 20px; padding: 1.75rem;">
+                    <h3 class="panel-title" style="font-family: var(--font-heading); font-weight: 800; font-size: 1.15rem; color: var(--text-primary); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-plus" style="color: var(--accent-blue);"></i> Tambah Periode Baru</h3>
+                    <form method="POST" action="{{ route('super-admin.kpi.periods.store') }}" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                        @csrf
+                        <div class="input-group" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); padding-left: 0.25rem;">Nama Periode</label>
+                            <div style="box-shadow: var(--nm-inset-sm); border-radius: 10px; background: var(--bg-primary); height: 42px; display: flex; align-items: center; padding: 0 0.5rem;">
+                                <input type="text" name="name" placeholder="cth: Semester Ganjil 2025" value="{{ old('name') }}" required style="width: 100%; border: none; background: transparent; outline: none; font-weight: 700; color: var(--text-primary); font-family: var(--font-body); font-size: 0.9rem; padding: 0 0.5rem;">
                             </div>
                         </div>
-                        
-                        <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; margin-bottom: 20px">
-                            <button type="submit" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); display: inline-flex; align-items: center; justify-content: center; height: 38px; border-radius: 8px; padding: 0 1.25rem; cursor: pointer; color: var(--accent-blue); transition: var(--transition); font-weight: 800; font-size: 0.85rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'" id="period-submit-btn">
-                                <i class="fa-solid fa-plus"></i> Simpan Periode
-                            </button>
-                            <button type="button" style="border: none; background: transparent; box-shadow: var(--nm-flat-sm); display: none; align-items: center; justify-content: center; height: 38px; border-radius: 8px; padding: 0 1.25rem; cursor: pointer; color: var(--text-secondary); transition: var(--transition); font-weight: 700; font-size: 0.85rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'" id="period-cancel-btn" onclick="resetPeriodForm()">
-                                Batal
+                        <div class="input-group" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); padding-left: 0.25rem;">Tanggal Mulai</label>
+                            <div style="box-shadow: var(--nm-inset-sm); border-radius: 10px; background: var(--bg-primary); height: 42px; display: flex; align-items: center; padding: 0 0.5rem;">
+                                <input type="date" name="start_date" value="{{ old('start_date') }}" required style="width: 100%; border: none; background: transparent; outline: none; font-weight: 700; color: var(--text-primary); font-family: var(--font-body); font-size: 0.9rem; padding: 0 0.5rem;">
+                            </div>
+                        </div>
+                        <div class="input-group" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); padding-left: 0.25rem;">Tanggal Selesai</label>
+                            <div style="box-shadow: var(--nm-inset-sm); border-radius: 10px; background: var(--bg-primary); height: 42px; display: flex; align-items: center; padding: 0 0.5rem;">
+                                <input type="date" name="end_date" value="{{ old('end_date') }}" required style="width: 100%; border: none; background: transparent; outline: none; font-weight: 700; color: var(--text-primary); font-family: var(--font-body); font-size: 0.9rem; padding: 0 0.5rem;">
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+                            <button type="submit" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); display: inline-flex; align-items: center; justify-content: center; height: 40px; border-radius: 10px; padding: 0 1.5rem; cursor: pointer; color: var(--accent-blue); transition: var(--transition); font-weight: 850; font-size: 0.85rem; gap: 0.5rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'">
+                                <i class="fa-solid fa-floppy-disk"></i> Simpan
                             </button>
                         </div>
                     </form>
                 </div>
 
-                <!-- Right: Periods List -->
-                <div class="dashboard-panel">
-                    <h3 class="panel-title"><i class="fa-solid fa-calendar-days"></i> Daftar Periode Penilaian</h3>
-                    
-                    <div class="table-container" style="box-shadow: none; border: 1.5px solid #d1d9e6;">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nama Periode</th>
-                                    <th>Mulai</th>
-                                    <th>Selesai</th>
-                                    <th style="width: 80px; text-align: center;">Libur</th>
-                                    <th style="width: 90px; text-align: center;">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($periods as $p)
-                                    <tr>
-                                        <td style="font-weight: 700; color: var(--text-primary);">{{ $p->name }}</td>
-                                        <td>{{ $p->start_date }}</td>
-                                        <td>{{ $p->end_date }}</td>
-                                        <td style="text-align: center; font-weight: 700; color: var(--accent-red);">{{ is_array($p->off_days) ? count($p->off_days) : 0 }} Hari</td>
-                                        <td>
-                                            <div style="display: flex; gap: 0.5rem; justify-content: center;">
-                                                <button class="edit-period-btn" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; color: var(--accent-blue); display: flex; align-items: center; justify-content: center; transition: var(--transition);" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'" data-id="{{ $p->id }}" data-name="{{ $p->name }}" data-start-date="{{ $p->start_date }}" data-end-date="{{ $p->end_date }}" data-off-days="{{ json_encode($p->off_days ?? []) }}" title="Edit Periode"><i class="fa-solid fa-pen"></i></button>
-                                                <form method="POST" action="{{ route('super-admin.kpi.periods.destroy', $p->id) }}" onsubmit="return confirm('Hapus Periode KPI ini? Semua data jobdesc dan laporan didalamnya akan terhapus permanen.')" style="margin: 0;">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; color: var(--accent-red); display: flex; align-items: center; justify-content: center; transition: var(--transition);" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'" title="Hapus Periode"><i class="fa-solid fa-trash"></i></button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" style="text-align: center; color: var(--text-secondary); font-style: italic; padding: 1.5rem 0;">Belum ada data periode. Buat periode baru di sebelah kiri.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                <!-- DAFTAR PERIODE -->
+                <div class="dashboard-panel" style="background: var(--bg-primary); box-shadow: var(--nm-flat-sm); border-radius: 20px; padding: 1.75rem;">
+                    <h3 class="panel-title" style="font-family: var(--font-heading); font-weight: 800; font-size: 1.15rem; color: var(--text-primary); margin-bottom: 1.25rem;"><i class="fa-solid fa-calendar-days" style="color: var(--accent-blue);"></i> Daftar Periode KPI</h3>
+
+                    @if($periods->count() === 0)
+                        <div style="text-align: center; color: var(--text-secondary); font-style: italic; padding: 3rem 0;">
+                            <i class="fa-solid fa-calendar-xmark" style="font-size: 2.25rem; margin-bottom: 0.75rem; display: block; opacity: 0.4; color: var(--text-secondary);"></i>
+                            Belum ada periode KPI. Tambahkan periode baru di sebelah kiri.
+                        </div>
+                    @else
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            @foreach($periods as $p)
+                                <div style="background: var(--bg-primary); box-shadow: var(--nm-flat-sm); border-radius: 14px; padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                                    <div>
+                                        <div style="font-weight: 850; font-size: 1rem; color: var(--text-primary);">{{ $p->name }}</div>
+                                        <div style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 700; margin-top: 0.35rem; display: flex; align-items: center; gap: 0.35rem;">
+                                            <i class="fa-solid fa-calendar-day" style="color: var(--accent-blue);"></i>
+                                            {{ \Carbon\Carbon::parse($p->start_date)->format('d M Y') }} &mdash; {{ \Carbon\Carbon::parse($p->end_date)->format('d M Y') }}
+                                        </div>
+                                        @php
+                                            $start = \Carbon\Carbon::parse($p->start_date);
+                                            $end = \Carbon\Carbon::parse($p->end_date);
+                                            $totalDays = $start->diffInDays($end) + 1;
+                                        @endphp
+                                        <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.35rem;">
+                                            <i class="fa-solid fa-clock" style="color: var(--accent-green);"></i>
+                                            <span>{{ $totalDays }} Hari Total</span>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 0.65rem;">
+                                        <button onclick="openEditModal({{ $p->id }}, '{{ addslashes($p->name) }}', '{{ $p->start_date }}', '{{ $p->end_date }}')" 
+                                            style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); display: inline-flex; align-items: center; justify-content: center; height: 36px; width: 36px; border-radius: 10px; cursor: pointer; color: var(--accent-blue); transition: var(--transition);"
+                                            onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'" title="Edit Periode">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <form method="POST" action="{{ route('super-admin.kpi.periods.destroy', $p->id) }}" onsubmit="return confirm('Hapus periode \'{{ addslashes($p->name) }}\'? Ini akan menghapus semua assignment KPI terkait.')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); display: inline-flex; align-items: center; justify-content: center; height: 36px; width: 36px; border-radius: 10px; cursor: pointer; color: var(--accent-red, #e53e3e); transition: var(--transition);"
+                                                onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'" title="Hapus Periode">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
-
         </main>
     </div>
 
+    <!-- MODAL EDIT PERIODE -->
+    <div id="edit-modal-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.15); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 1.5rem;">
+        <div class="card-nm" style="width: 100%; max-width: 480px; padding: 2rem; position: relative; background: var(--bg-primary); box-shadow: 10px 10px 30px rgba(0,0,0,0.1), -10px -10px 30px rgba(255,255,255,0.9); border-radius: 24px;">
+            <button style="position: absolute; top: 1rem; right: 1rem; border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center;" onclick="closeEditModal()"><i class="fa-solid fa-xmark"></i></button>
+            
+            <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 850; margin-bottom: 1.5rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-pen" style="color: var(--accent-blue);"></i> Edit Periode KPI</h3>
+            
+            <form id="edit-form" method="POST" action="" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                @csrf
+                @method('PUT')
+                <div class="input-group" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                    <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); padding-left: 0.25rem;">Nama Periode</label>
+                    <div style="box-shadow: var(--nm-inset-sm); border-radius: 10px; background: var(--bg-primary); height: 42px; display: flex; align-items: center; padding: 0 0.5rem;">
+                        <input type="text" id="edit-name" name="name" required style="width: 100%; border: none; background: transparent; outline: none; font-weight: 700; color: var(--text-primary); font-family: var(--font-body); font-size: 0.9rem; padding: 0 0.5rem;">
+                    </div>
+                </div>
+                <div class="input-group" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                    <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); padding-left: 0.25rem;">Tanggal Mulai</label>
+                    <div style="box-shadow: var(--nm-inset-sm); border-radius: 10px; background: var(--bg-primary); height: 42px; display: flex; align-items: center; padding: 0 0.5rem;">
+                        <input type="date" id="edit-start" name="start_date" required style="width: 100%; border: none; background: transparent; outline: none; font-weight: 700; color: var(--text-primary); font-family: var(--font-body); font-size: 0.9rem; padding: 0 0.5rem;">
+                    </div>
+                </div>
+                <div class="input-group" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                    <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); padding-left: 0.25rem;">Tanggal Selesai</label>
+                    <div style="box-shadow: var(--nm-inset-sm); border-radius: 10px; background: var(--bg-primary); height: 42px; display: flex; align-items: center; padding: 0 0.5rem;">
+                        <input type="date" id="edit-end" name="end_date" required style="width: 100%; border: none; background: transparent; outline: none; font-weight: 700; color: var(--text-primary); font-family: var(--font-body); font-size: 0.9rem; padding: 0 0.5rem;">
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                    <button type="button" onclick="closeEditModal()" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--text-secondary); display: inline-flex; align-items: center; justify-content: center; height: 38px; border-radius: 8px; padding: 0 1.25rem; font-weight: 750; cursor: pointer; font-size: 0.85rem;">Batal</button>
+                    <button type="submit" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--accent-blue); display: inline-flex; align-items: center; justify-content: center; height: 38px; border-radius: 8px; padding: 0 1.5rem; font-weight: 850; cursor: pointer; gap: 0.4rem; font-size: 0.85rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
-        // off-days checklist generator
-        const startDateInput = document.getElementById('period-start-date');
-        const endDateInput = document.getElementById('period-end-date');
-        const checklistContainer = document.getElementById('off-days-checklist-container');
-
-        function generateOffDaysChecklist(selectedDates = []) {
-            if (!startDateInput || !endDateInput || !checklistContainer) return;
-            const startVal = startDateInput.value;
-            const endVal = endDateInput.value;
-            
-            if (!startVal || !endVal) {
-                checklistContainer.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-secondary); font-style: italic;">Pilih tanggal mulai & selesai terlebih dahulu...</span>';
-                return;
-            }
-
-            const start = new Date(startVal);
-            const end = new Date(endVal);
-
-            if (start > end) {
-                checklistContainer.innerHTML = '<span style="font-size: 0.8rem; color: var(--accent-red); font-style: italic;">Tanggal selesai harus setelah atau sama dengan tanggal mulai!</span>';
-                return;
-            }
-
-            checklistContainer.innerHTML = '';
-            const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-            
-            let current = new Date(start);
-            let limit = 0;
-            while (current <= end && limit < 366) {
-                limit++;
-                const dateString = current.toISOString().split('T')[0];
-                const dayIndex = current.getDay();
-                const dayName = dayNames[dayIndex];
-                
-                const isWeekend = dayIndex === 0 || dayIndex === 6;
-                const isChecked = selectedDates.length > 0 ? selectedDates.includes(dateString) : isWeekend;
-
-                const label = document.createElement('label');
-                label.style.display = 'flex';
-                label.style.alignItems = 'center';
-                label.style.gap = '0.5rem';
-                label.style.fontSize = '0.85rem';
-                label.style.cursor = 'pointer';
-                label.style.padding = '0.35rem 0.5rem';
-                label.style.borderRadius = '6px';
-                label.style.transition = 'var(--transition)';
-                label.onmouseover = function() { this.style.background = 'var(--bg-secondary)'; };
-                label.onmouseout = function() { this.style.background = 'transparent'; };
-
-                const isWeekendColor = isWeekend ? 'color: var(--accent-red); font-weight: 700;' : 'color: var(--text-primary);';
-
-                label.innerHTML = `
-                    <input type="checkbox" name="off_days[]" value="${dateString}" ${isChecked ? 'checked' : ''} style="cursor: pointer;">
-                    <span style="${isWeekendColor}">${dateString} (${dayName})</span>
-                `;
-                checklistContainer.appendChild(label);
-
-                current.setDate(current.getDate() + 1);
-            }
-        }
-
-        if (startDateInput && endDateInput) {
-            startDateInput.addEventListener('change', () => generateOffDaysChecklist());
-            endDateInput.addEventListener('change', () => generateOffDaysChecklist());
-        }
-
-        // Period edit helper
-        document.querySelectorAll('.edit-period-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = this.getAttribute('data-id');
-                const name = this.getAttribute('data-name');
-                const startDate = this.getAttribute('data-start-date');
-                const endDate = this.getAttribute('data-end-date');
-                let offDays = [];
-                try {
-                    offDays = JSON.parse(this.getAttribute('data-off-days') || '[]');
-                } catch(e) {
-                    offDays = [];
-                }
-                
-                document.getElementById('period-form-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Periode KPI';
-                const form = document.getElementById('period-form');
-                form.action = `/super-admin/kpi/periods/${id}`;
-                document.getElementById('period-form-method').value = 'PUT';
-                document.getElementById('period-name').value = name;
-                document.getElementById('period-start-date').value = startDate;
-                document.getElementById('period-end-date').value = endDate;
-                
-                generateOffDaysChecklist(offDays);
-
-                document.getElementById('period-submit-btn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan';
-                document.getElementById('period-cancel-btn').style.display = 'inline-flex';
+        // Submenu toggling
+        document.querySelectorAll('.submenu-trigger').forEach(trigger => {
+            trigger.addEventListener('click', function() {
+                const parent = this.parentElement;
+                parent.classList.toggle('open');
             });
         });
 
-        function resetPeriodForm() {
-            document.getElementById('period-form-title').innerHTML = '<i class="fa-solid fa-calendar-plus"></i> Tambah Periode KPI';
-            const form = document.getElementById('period-form');
-            form.action = "{{ route('super-admin.kpi.periods.store') }}";
-            document.getElementById('period-form-method').value = 'POST';
-            document.getElementById('period-name').value = '';
-            document.getElementById('period-start-date').value = '';
-            document.getElementById('period-end-date').value = '';
-            
-            if (checklistContainer) {
-                checklistContainer.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-secondary); font-style: italic;">Pilih tanggal mulai & selesai terlebih dahulu...</span>';
-            }
-
-            document.getElementById('period-submit-btn').innerHTML = '<i class="fa-solid fa-plus"></i> Simpan Periode';
-            document.getElementById('period-cancel-btn').style.display = 'none';
+        function openEditModal(id, name, startDate, endDate) {
+            document.getElementById('edit-name').value  = name;
+            document.getElementById('edit-start').value = startDate;
+            document.getElementById('edit-end').value   = endDate;
+            document.getElementById('edit-form').action = `/super-admin/kpi/periods/${id}`;
+            document.getElementById('edit-modal-overlay').style.display = 'flex';
         }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal-overlay').style.display = 'none';
+        }
+
+        // Close modal on overlay click
+        document.getElementById('edit-modal-overlay').addEventListener('click', function(e) {
+            if (e.target === this) closeEditModal();
+        });
     </script>
 </body>
 </html>

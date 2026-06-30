@@ -15,11 +15,16 @@ class TeacherKpiAssignment extends Model
         'user_id',
         'teacher_kpi_period_id',
         'teacher_kpi_item_id',
+        'off_days',
     ];
 
-    public function teacher()
+    protected $casts = [
+        'off_days' => 'array',
+    ];
+
+    public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
 
     public function period()
