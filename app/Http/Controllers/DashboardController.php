@@ -362,7 +362,7 @@ class DashboardController extends Controller
             // Check Matriculation (with classroom, homeroom teacher, and classmates)
             $matriculationStudent = \App\Models\MatriculationStudent::with([
                 'classroom.homeroomTeacher',
-                'classroom.assistantTeacher',
+                'classroom.assistantTeachers',
                 'classroom.matriculationStudents.registration.user'
             ])->where('registration_id', $registration->id)->first();
 
@@ -374,7 +374,7 @@ class DashboardController extends Controller
             // Check Education (override if active or passed) (with classroom, homeroom teacher, and classmates)
             $educationStudent = \App\Models\EducationStudent::with([
                 'classroom.homeroomTeacher',
-                'classroom.assistantTeacher',
+                'classroom.assistantTeachers',
                 'registration.user'
             ])->where('registration_id', $registration->id)->first();
 
@@ -1710,12 +1710,12 @@ class DashboardController extends Controller
 
         // 1. Total classrooms managed by this teacher (as homeroom or assistant)
         $totalClassrooms = Classroom::where('homeroom_teacher_id', $user->id)
-            ->orWhere('assistant_teacher_id', $user->id)
+            ->orWhereHas('assistantTeachers', fn($q) => $q->where('users.id', $user->id))
             ->count();
 
         // 2. Total active students under this teacher's classrooms (combining matriculation and education phases)
         $managedClassroomIds = Classroom::where('homeroom_teacher_id', $user->id)
-            ->orWhere('assistant_teacher_id', $user->id)
+            ->orWhereHas('assistantTeachers', fn($q) => $q->where('users.id', $user->id))
             ->pluck('id')
             ->toArray();
         
@@ -1940,7 +1940,7 @@ class DashboardController extends Controller
 
         $teachers = \App\Models\User::where('role', 'pengajar')->orderBy('name', 'asc')->get();
 
-        $classrooms = Classroom::with(['homeroomTeacher', 'assistantTeacher', 'leaderRegistration'])
+        $classrooms = Classroom::with(['homeroomTeacher', 'assistantTeachers', 'leaderRegistration'])
             ->where('academic_year_id', $selectedAcademicYearId)
             ->where('batch_id', $selectedBatchId)
             ->get();
@@ -1969,15 +1969,18 @@ class DashboardController extends Controller
     public function matriculationAssignTeachers($id, Request $request)
     {
         $request->validate([
-            'homeroom_teacher_id' => 'nullable|exists:users,id',
-            'assistant_teacher_id' => 'nullable|exists:users,id',
+            'homeroom_teacher_id'    => 'nullable|exists:users,id',
+            'assistant_teacher_ids'  => 'nullable|array',
+            'assistant_teacher_ids.*'=> 'exists:users,id',
         ]);
 
         $classroom = Classroom::findOrFail($id);
         $classroom->update([
             'homeroom_teacher_id' => $request->homeroom_teacher_id,
-            'assistant_teacher_id' => $request->assistant_teacher_id,
         ]);
+
+        // Sync many-to-many assistant teachers
+        $classroom->assistantTeachers()->sync($request->assistant_teacher_ids ?? []);
 
         return redirect()->back()->with('success', 'Pembimbing Wali & Wakil Wali kelas berhasil diperbarui.');
     }
@@ -2293,10 +2296,10 @@ class DashboardController extends Controller
             return redirect('/login');
         }
 
-        $classrooms = Classroom::with(['academicYear', 'batch', 'leaderRegistration'])
+        $classrooms = Classroom::with(['academicYear', 'batch', 'leaderRegistration', 'assistantTeachers'])
             ->where(function($q) use ($user) {
                 $q->where('homeroom_teacher_id', $user->id)
-                  ->orWhere('assistant_teacher_id', $user->id);
+                  ->orWhereHas('assistantTeachers', fn($q) => $q->where('users.id', $user->id));
             })
             ->get();
 
@@ -2310,10 +2313,10 @@ class DashboardController extends Controller
             return redirect('/login');
         }
 
-        $classrooms = Classroom::with(['academicYear', 'batch', 'leaderRegistration'])
+        $classrooms = Classroom::with(['academicYear', 'batch', 'leaderRegistration', 'assistantTeachers'])
             ->where(function($q) use ($user) {
                 $q->where('homeroom_teacher_id', $user->id)
-                  ->orWhere('assistant_teacher_id', $user->id);
+                  ->orWhereHas('assistantTeachers', fn($q) => $q->where('users.id', $user->id));
             })
             ->get();
 
@@ -2327,10 +2330,10 @@ class DashboardController extends Controller
             return redirect('/login');
         }
 
-        $classroom = Classroom::with(['academicYear', 'batch', 'leaderRegistration'])
+        $classroom = Classroom::with(['academicYear', 'batch', 'leaderRegistration', 'assistantTeachers'])
             ->where(function($q) use ($user) {
                 $q->where('homeroom_teacher_id', $user->id)
-                  ->orWhere('assistant_teacher_id', $user->id);
+                  ->orWhereHas('assistantTeachers', fn($q) => $q->where('users.id', $user->id));
             })
             ->findOrFail($id);
 
@@ -2377,7 +2380,7 @@ class DashboardController extends Controller
 
         $st = MatriculationStudent::whereHas('classroom', function($q) use ($user) {
             $q->where('homeroom_teacher_id', $user->id)
-              ->orWhere('assistant_teacher_id', $user->id);
+              ->orWhereHas('assistantTeachers', fn($q) => $q->where('users.id', $user->id));
         })->findOrFail($request->student_id);
 
         $st->status = $request->status;
@@ -2393,10 +2396,10 @@ class DashboardController extends Controller
             return redirect('/login');
         }
 
-        $classrooms = Classroom::with(['academicYear', 'batch', 'leaderRegistration'])
+        $classrooms = Classroom::with(['academicYear', 'batch', 'leaderRegistration', 'assistantTeachers'])
             ->where(function($q) use ($user) {
                 $q->where('homeroom_teacher_id', $user->id)
-                  ->orWhere('assistant_teacher_id', $user->id);
+                  ->orWhereHas('assistantTeachers', fn($q) => $q->where('users.id', $user->id));
             })
             ->get();
 
@@ -2410,10 +2413,10 @@ class DashboardController extends Controller
             return redirect('/login');
         }
 
-        $classrooms = Classroom::with(['academicYear', 'batch', 'leaderRegistration'])
+        $classrooms = Classroom::with(['academicYear', 'batch', 'leaderRegistration', 'assistantTeachers'])
             ->where(function($q) use ($user) {
                 $q->where('homeroom_teacher_id', $user->id)
-                  ->orWhere('assistant_teacher_id', $user->id);
+                  ->orWhereHas('assistantTeachers', fn($q) => $q->where('users.id', $user->id));
             })
             ->get();
 
@@ -2427,10 +2430,10 @@ class DashboardController extends Controller
             return redirect('/login');
         }
 
-        $classroom = Classroom::with(['academicYear', 'batch', 'leaderRegistration'])
+        $classroom = Classroom::with(['academicYear', 'batch', 'leaderRegistration', 'assistantTeachers'])
             ->where(function($q) use ($user) {
                 $q->where('homeroom_teacher_id', $user->id)
-                  ->orWhere('assistant_teacher_id', $user->id);
+                  ->orWhereHas('assistantTeachers', fn($q) => $q->where('users.id', $user->id));
             })
             ->findOrFail($id);
 
@@ -2477,7 +2480,7 @@ class DashboardController extends Controller
 
         $st = EducationStudent::whereHas('classroom', function($q) use ($user) {
             $q->where('homeroom_teacher_id', $user->id)
-              ->orWhere('assistant_teacher_id', $user->id);
+              ->orWhereHas('assistantTeachers', fn($q) => $q->where('users.id', $user->id));
         })->findOrFail($request->student_id);
 
         $st->status = $request->status;
@@ -2493,10 +2496,10 @@ class DashboardController extends Controller
             return redirect('/login');
         }
 
-        $classroom = Classroom::with(['academicYear', 'batch', 'leaderRegistration'])
+        $classroom = Classroom::with(['academicYear', 'batch', 'leaderRegistration', 'assistantTeachers'])
             ->where(function($q) use ($user) {
                 $q->where('homeroom_teacher_id', $user->id)
-                  ->orWhere('assistant_teacher_id', $user->id);
+                  ->orWhereHas('assistantTeachers', fn($q) => $q->where('users.id', $user->id));
             })
             ->findOrFail($id);
 
@@ -2544,7 +2547,7 @@ class DashboardController extends Controller
         $classroom = Classroom::with(['academicYear', 'batch'])
             ->where(function($q) use ($user) {
                 $q->where('homeroom_teacher_id', $user->id)
-                  ->orWhere('assistant_teacher_id', $user->id);
+                  ->orWhereHas('assistantTeachers', fn($q) => $q->where('users.id', $user->id));
             })
             ->findOrFail($classroomId);
 
@@ -2876,7 +2879,7 @@ class DashboardController extends Controller
 
         $teachers = \App\Models\User::where('role', 'pengajar')->orderBy('name', 'asc')->get();
 
-        $classrooms = Classroom::with(['homeroomTeacher', 'assistantTeacher', 'leaderRegistration'])
+        $classrooms = Classroom::with(['homeroomTeacher', 'assistantTeachers', 'leaderRegistration'])
             ->where('academic_year_id', $selectedAcademicYearId)
             ->where('batch_id', $selectedBatchId)
             ->get();
@@ -2904,15 +2907,18 @@ class DashboardController extends Controller
     public function educationAssignTeachers($id, Request $request)
     {
         $request->validate([
-            'homeroom_teacher_id' => 'nullable|exists:users,id',
-            'assistant_teacher_id' => 'nullable|exists:users,id',
+            'homeroom_teacher_id'    => 'nullable|exists:users,id',
+            'assistant_teacher_ids'  => 'nullable|array',
+            'assistant_teacher_ids.*'=> 'exists:users,id',
         ]);
 
         $classroom = Classroom::findOrFail($id);
         $classroom->update([
             'homeroom_teacher_id' => $request->homeroom_teacher_id,
-            'assistant_teacher_id' => $request->assistant_teacher_id,
         ]);
+
+        // Sync many-to-many assistant teachers
+        $classroom->assistantTeachers()->sync($request->assistant_teacher_ids ?? []);
 
         return redirect()->back()->with('success', 'Pembimbing Wali & Wakil Wali kelas berhasil diperbarui.');
     }
@@ -3215,7 +3221,7 @@ class DashboardController extends Controller
         $classroom = Classroom::with(['academicYear', 'batch'])
             ->where(function($q) use ($user) {
                 $q->where('homeroom_teacher_id', $user->id)
-                  ->orWhere('assistant_teacher_id', $user->id);
+                  ->orWhereHas('assistantTeachers', fn($q) => $q->where('users.id', $user->id));
             })
             ->findOrFail($classroomId);
 

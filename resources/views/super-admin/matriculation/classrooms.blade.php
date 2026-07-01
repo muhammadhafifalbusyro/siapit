@@ -205,6 +205,7 @@
                         @forelse($classrooms as $cls)
                             @php
                                 $classStudents = $allStudents->where('classroom_id', $cls->id);
+                                $assistantIds = $cls->assistantTeachers->pluck('id')->toJson();
                             @endphp
                             <div class="card-nm" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #d1d9e6; padding-bottom: 0.75rem;">
@@ -213,7 +214,7 @@
                                         <span style="font-size: 0.75rem; background: var(--bg-primary); box-shadow: var(--nm-inset-sm); padding: 0.2rem 0.5rem; border-radius: 5px; font-weight: 700; color: var(--text-secondary);">Kuota: {{ $classStudents->count() }} Santri</span>
                                     </div>
                                     <div style="display: flex; gap: 0.5rem;">
-                                        <button onclick="openAssignTeachersModal({{ $cls->id }}, '{{ $cls->homeroom_teacher_id }}', '{{ $cls->assistant_teacher_id }}')" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); padding: 0 0.75rem; height: 32px; border-radius: 8px; font-weight: 800; font-size: 0.75rem; color: var(--accent-blue); cursor: pointer; display: flex; align-items: center; gap: 0.25rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" title="Atur Pembimbing">
+                                        <button onclick="openAssignTeachersModal({{ $cls->id }}, '{{ $cls->homeroom_teacher_id }}', {{ $assistantIds }})" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); padding: 0 0.75rem; height: 32px; border-radius: 8px; font-weight: 800; font-size: 0.75rem; color: var(--accent-blue); cursor: pointer; display: flex; align-items: center; gap: 0.25rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" title="Atur Pembimbing">
                                             <i class="fa-solid fa-user-tie"></i> Atur Wali
                                         </button>
                                         <button data-id="{{ $cls->id }}" data-name="{{ $cls->name }}" data-leader="{{ $cls->leader_registration_id }}" data-students="{{ json_encode($classStudents->map(fn($s) => ['id' => $s->id, 'reg_id' => $s->registration->id, 'name' => $s->registration->name, 'status' => $s->status])->values()) }}" onclick="openClassroomStudentsModalFromButton(this)" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); padding: 0 0.75rem; height: 32px; border-radius: 8px; font-weight: 800; font-size: 0.75rem; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; gap: 0.25rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
@@ -232,10 +233,12 @@
                                     </div>
                                     <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                         <span style="font-weight: 700; color: var(--text-secondary);">Wakil Wali Kelas:</span>
-                                        <span style="font-weight: 700; color: var(--text-primary);">{{ $cls->assistantTeacher->name ?? '-' }}</span>
-                                        @if($cls->assistantTeacher)
-                                            <span style="font-size: 0.7rem; color: var(--accent-blue); font-weight: 700;">({{ $cls->assistantTeacher->teacher_type }})</span>
-                                        @endif
+                                        @forelse($cls->assistantTeachers as $ast)
+                                            <span style="font-weight: 700; color: var(--text-primary);">{{ $ast->name }}</span>
+                                            <span style="font-size: 0.7rem; color: var(--accent-blue); font-weight: 700;">({{ $ast->teacher_type }})</span>
+                                        @empty
+                                            <span style="font-weight: 700; color: var(--text-primary);">-</span>
+                                        @endforelse
                                     </div>
                                     <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                         <span style="font-weight: 700; color: var(--text-secondary);">Ketua Kelas:</span>
@@ -285,12 +288,13 @@
 
     <!-- MODAL ASSIGN TEACHERS -->
     <div id="teachers-modal-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.15); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 1.5rem;">
-        <div class="card-nm" style="width: 100%; max-width: 420px; padding: 2rem; position: relative;">
+        <div class="card-nm" style="width: 100%; max-width: 480px; padding: 2rem; position: relative; max-height: 90vh; overflow-y: auto;">
             <button style="position: absolute; top: 1rem; right: 1rem; border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center;" onclick="closeAssignTeachersModal()" type="button"><i class="fa-solid fa-xmark"></i></button>
-            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; margin-bottom: 1.5rem;">Atur Pembimbing Kelas</h3>
+            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; margin-bottom: 1.5rem;"><i class="fa-solid fa-user-tie" style="color: var(--accent-blue);"></i> Atur Pembimbing Kelas</h3>
             <form id="assign-teachers-form" method="POST" style="display: flex; flex-direction: column; gap: 1.25rem; text-align: left;">
                 @csrf
-                
+
+                <!-- Wali Kelas (single dropdown) -->
                 <div style="display: flex; flex-direction: column; gap: 0.5rem; position: relative;">
                     <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Wali Kelas</label>
                     <div class="select-wrapper" style="position: relative; overflow: visible;">
@@ -305,23 +309,26 @@
                     </div>
                 </div>
 
-                <div style="display: flex; flex-direction: column; gap: 0.5rem; position: relative;">
-                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Wakil Wali Kelas</label>
-                    <div class="select-wrapper" style="position: relative; overflow: visible;">
-                        <input type="hidden" name="assistant_teacher_id" id="assistant-select">
-                        <input type="text" id="assistant-search" placeholder="Cari Wakil Wali Kelas..." autocomplete="off" style="width: 100%; border: none; background: transparent; outline: none; font-weight: 600; color: var(--text-primary); padding: 0.5rem 1rem; height: 100%;" onfocus="showDropdown('assistant')" oninput="filterDropdown('assistant')">
-                        <div id="assistant-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); border-radius: 10px; max-height: 200px; overflow-y: auto; z-index: 1010; padding: 0.5rem 0;">
-                            <div style="padding: 0.5rem 1rem; cursor: pointer; font-weight: 700; color: var(--text-secondary);" onclick="selectOption('assistant', '', '- Belum Ditentukan -')">- Belum Ditentukan -</div>
-                            @foreach($teachers as $t)
-                                <div class="dropdown-item" data-value="{{ $t->id }}" data-search="{{ strtolower($t->name) }}" style="padding: 0.5rem 1rem; cursor: pointer; font-weight: 600; color: var(--text-primary);" onclick="selectOption('assistant', '{{ $t->id }}', '{{ $t->name }} ({{ $t->teacher_type }})')">{{ $t->name }} ({{ $t->teacher_type }})</div>
-                            @endforeach
-                        </div>
+                <!-- Wakil Wali Kelas (multi-checkbox) -->
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Wakil Wali Kelas <span style="font-weight: 500; font-size: 0.78rem;">(bisa lebih dari satu)</span></label>
+                    <div style="box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.5rem; max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.25rem;">
+                        <input type="text" id="assistant-filter" placeholder="Cari pengajar..." oninput="filterAssistantCheckboxes(this.value)" style="border: none; background: transparent; outline: none; font-size: 0.82rem; font-weight: 600; color: var(--text-primary); padding: 0.4rem 0.75rem; width: 100%; border-bottom: 1px solid #d1d9e6; margin-bottom: 0.25rem;">
+                        @foreach($teachers as $t)
+                            <label class="assistant-checkbox-item" data-search="{{ strtolower($t->name) }}" style="display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.75rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--text-primary); transition: background 0.15s;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='transparent'">
+                                <input type="checkbox" name="assistant_teacher_ids[]" value="{{ $t->id }}" id="asst_{{ $t->id }}" style="width: 15px; height: 15px; accent-color: var(--accent-blue); cursor: pointer;">
+                                <span>{{ $t->name }}</span>
+                                <span style="font-size: 0.72rem; color: var(--text-secondary); margin-left: auto;">{{ $t->teacher_type }}</span>
+                            </label>
+                        @endforeach
                     </div>
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
                     <button type="button" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--text-secondary); display: inline-flex; align-items: center; justify-content: center; height: 38px; border-radius: 10px; padding: 0 1.5rem; font-weight: 700; cursor: pointer;" onclick="closeAssignTeachersModal()">Batal</button>
-                    <button type="submit" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--accent-blue); display: inline-flex; align-items: center; justify-content: center; height: 38px; border-radius: 10px; padding: 0 1.5rem; font-weight: 800; cursor: pointer;">Simpan</button>
+                    <button type="submit" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--accent-blue); display: inline-flex; align-items: center; justify-content: center; height: 38px; border-radius: 10px; padding: 0 1.5rem; font-weight: 800; cursor: pointer; gap: 0.4rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan
+                    </button>
                 </div>
             </form>
         </div>
@@ -372,7 +379,6 @@
         const teachersOverlay = document.getElementById('teachers-modal-overlay');
         const assignTeachersForm = document.getElementById('assign-teachers-form');
         const homeroomSelect = document.getElementById('homeroom-select');
-        const assistantSelect = document.getElementById('assistant-select');
 
         const teacherNames = {
             @foreach($teachers as $t)
@@ -380,22 +386,36 @@
             @endforeach
         };
 
-        function openAssignTeachersModal(classId, homeroomId, assistantId) {
+        // assistantIds is now an array of IDs
+        function openAssignTeachersModal(classId, homeroomId, assistantIds) {
             assignTeachersForm.action = `/super-admin/matriculation/classrooms/${classId}/assign-teachers`;
-            
+
             // Homeroom
             document.getElementById('homeroom-select').value = homeroomId || '';
             document.getElementById('homeroom-search').value = homeroomId ? (teacherNames[homeroomId] || '') : '- Belum Ditentukan -';
-            
-            // Assistant
-            document.getElementById('assistant-select').value = assistantId || '';
-            document.getElementById('assistant-search').value = assistantId ? (teacherNames[assistantId] || '') : '- Belum Ditentukan -';
-            
+
+            // Uncheck all assistant checkboxes first, then check the pre-selected ones
+            document.querySelectorAll('input[name="assistant_teacher_ids[]"]').forEach(cb => {
+                cb.checked = Array.isArray(assistantIds) && assistantIds.map(String).includes(String(cb.value));
+            });
+
+            // Clear assistant filter
+            const filterEl = document.getElementById('assistant-filter');
+            if (filterEl) { filterEl.value = ''; filterAssistantCheckboxes(''); }
+
             teachersOverlay.style.display = 'flex';
         }
 
         function closeAssignTeachersModal() {
             teachersOverlay.style.display = 'none';
+        }
+
+        function filterAssistantCheckboxes(query) {
+            const lq = query.toLowerCase();
+            document.querySelectorAll('.assistant-checkbox-item').forEach(item => {
+                const name = item.getAttribute('data-search') || '';
+                item.style.display = name.includes(lq) ? 'flex' : 'none';
+            });
         }
 
         function showDropdown(type) {
@@ -409,11 +429,7 @@
             const items = document.querySelectorAll(`#${type}-dropdown .dropdown-item`);
             items.forEach(item => {
                 const searchVal = item.getAttribute('data-search');
-                if (searchVal.includes(query)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
+                item.style.display = searchVal.includes(query) ? 'block' : 'none';
             });
         }
 
@@ -428,11 +444,6 @@
             if (document.getElementById('homeroom-dropdown')) {
                 if (!e.target.closest('#homeroom-search') && !e.target.closest('#homeroom-dropdown')) {
                     document.getElementById('homeroom-dropdown').style.display = 'none';
-                }
-            }
-            if (document.getElementById('assistant-dropdown')) {
-                if (!e.target.closest('#assistant-search') && !e.target.closest('#assistant-dropdown')) {
-                    document.getElementById('assistant-dropdown').style.display = 'none';
                 }
             }
         });

@@ -14,7 +14,6 @@ class Classroom extends Model
         'batch_id',
         'name',
         'homeroom_teacher_id',
-        'assistant_teacher_id',
         'leader_registration_id',
     ];
 
@@ -33,9 +32,12 @@ class Classroom extends Model
         return $this->belongsTo(User::class, 'homeroom_teacher_id');
     }
 
-    public function assistantTeacher()
+    /**
+     * Multiple assistant teachers via pivot table (Many-to-Many).
+     */
+    public function assistantTeachers()
     {
-        return $this->belongsTo(User::class, 'assistant_teacher_id');
+        return $this->belongsToMany(User::class, 'classroom_assistant_teachers');
     }
 
     public function leaderRegistration()

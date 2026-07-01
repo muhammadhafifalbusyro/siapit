@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     @vite(['resources/css/dashboard.css', 'resources/js/app.js'])
     <style>
+        :root {
+            --accent-green: #10b981;
+        }
 
         body {
             background-color: var(--bg-primary);
@@ -140,6 +143,22 @@
         .stage-card.pending .stage-status-label {
             background: rgba(100, 116, 139, 0.1);
             color: var(--text-secondary);
+        }
+
+        .stage-card.failed, .stage-card.resigned {
+            box-shadow: var(--nm-flat-sm);
+            border-color: var(--accent-red);
+        }
+
+        .stage-card.failed .stage-icon-box, .stage-card.resigned .stage-icon-box {
+            background: var(--accent-red);
+            color: #ffffff;
+            box-shadow: 0px 4px 10px rgba(239, 68, 68, 0.2);
+        }
+
+        .stage-card.failed .stage-status-label, .stage-card.resigned .stage-status-label {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
         }
 
         /* Neumorphic Modal Styles */
@@ -300,14 +319,19 @@
                     $isMatriculation = ($activePhase === 'Masa Matrikulasi');
                     $isEducation = ($activePhase === 'Masa Pendidikan');
                     $isCareer = ($activePhase === 'Masa Berkarya');
+
+                    $matStatus = $matriculationStudent->status ?? 'pending';
+                    $eduStatus = $educationStudent->status ?? 'pending';
                 @endphp
 
                 <!-- Neumorphic Segmented Track Layout -->
                 <div class="stage-track">
                     <!-- Stage 1: Matrikulasi -->
-                    <div class="stage-card {{ $isMatriculation ? 'active' : '' }} {{ ($isEducation || $isCareer) ? 'completed' : '' }}">
+                    <div class="stage-card {{ in_array($matStatus, ['failed', 'resigned']) ? $matStatus : ($isMatriculation ? 'active' : (($isEducation || $isCareer || $matStatus === 'passed') ? 'completed' : '')) }}">
                         <div class="stage-icon-box">
-                            @if($isEducation || $isCareer)
+                            @if(in_array($matStatus, ['failed', 'resigned']))
+                                <i class="fa-solid fa-circle-xmark"></i>
+                            @elseif($isEducation || $isCareer || $matStatus === 'passed')
                                 <i class="fa-solid fa-circle-check"></i>
                             @else
                                 <i class="fa-solid fa-compass"></i>
@@ -315,14 +339,16 @@
                         </div>
                         <span class="stage-title">Matrikulasi</span>
                         <span class="stage-status-label">
-                            @if($isEducation || $isCareer) Lulus @else Aktif @endif
+                            @if($matStatus === 'failed') Gugur @elseif($matStatus === 'resigned') Mundur @elseif($isEducation || $isCareer || $matStatus === 'passed') Lulus @else Aktif @endif
                         </span>
                     </div>
 
                     <!-- Stage 2: Pendidikan -->
-                    <div class="stage-card {{ $isEducation ? 'active' : '' }} {{ $isCareer ? 'completed' : '' }} {{ $isMatriculation ? 'pending' : '' }}">
+                    <div class="stage-card {{ in_array($eduStatus, ['failed', 'resigned']) ? $eduStatus : ($isEducation ? 'active' : ($isCareer ? 'completed' : ($isMatriculation ? 'pending' : ''))) }}">
                         <div class="stage-icon-box">
-                            @if($isCareer)
+                            @if(in_array($eduStatus, ['failed', 'resigned']))
+                                <i class="fa-solid fa-circle-xmark"></i>
+                            @elseif($isCareer)
                                 <i class="fa-solid fa-circle-check"></i>
                             @else
                                 <i class="fa-solid fa-book-open"></i>
@@ -330,7 +356,7 @@
                         </div>
                         <span class="stage-title">Pendidikan</span>
                         <span class="stage-status-label">
-                            @if($isCareer) Lulus @elseif($isEducation) Aktif @else Belum @endif
+                            @if($eduStatus === 'failed') Gugur @elseif($eduStatus === 'resigned') Mundur @elseif($isCareer) Lulus @elseif($isEducation) Aktif @else Belum @endif
                         </span>
                     </div>
 
@@ -358,7 +384,7 @@
                         <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
                             <li style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem;">
                                 <i class="fa-solid fa-school" style="color: var(--accent-blue); width: 14px;"></i> 
-                                <a href="javascript:void(0)" onclick="openClassModal('Matrikulasi', '{{ $matriculationStudent->classroom->name ?? 'Belum Ada Kelas' }}', '{{ $matriculationStudent->classroom->homeroomTeacher->name ?? 'Belum Ditentukan' }}', '{{ $matriculationStudent->classroom->assistantTeacher->name ?? 'Belum Ditentukan' }}', {{ json_encode($matriculationStudent->classroom->matriculationStudents ?? []) }}, 'matriculation')" style="color: inherit; text-decoration: none; border-bottom: 1px dashed var(--accent-blue); transition: var(--transition);">
+                                <a href="javascript:void(0)" onclick="openClassModal('Matrikulasi', '{{ $matriculationStudent->classroom->name ?? 'Belum Ada Kelas' }}', '{{ $matriculationStudent->classroom->homeroomTeacher->name ?? 'Belum Ditentukan' }}', '{{ $matriculationStudent->classroom->assistantTeachers->pluck('name')->join(', ') ?: 'Belum Ditentukan' }}', {{ json_encode($matriculationStudent->classroom->matriculationStudents ?? []) }}, 'matriculation')" style="color: inherit; text-decoration: none; border-bottom: 1px dashed var(--accent-blue); transition: var(--transition);">
                                     Kelas: {{ $matriculationStudent->classroom->name ?? 'Belum Ada Kelas' }}
                                 </a>
                             </li>
@@ -383,7 +409,7 @@
                         <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
                             <li style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem;">
                                 <i class="fa-solid fa-school" style="color: var(--accent-green); width: 14px;"></i> 
-                                <a href="javascript:void(0)" onclick="openClassModal('Pendidikan', '{{ $educationStudent->classroom->name ?? 'Belum Ada Kelas' }}', '{{ $educationStudent->classroom->homeroomTeacher->name ?? 'Belum Ditentukan' }}', '{{ $educationStudent->classroom->assistantTeacher->name ?? 'Belum Ditentukan' }}', {{ json_encode($educationClassmates ?? []) }}, 'education')" style="color: inherit; text-decoration: none; border-bottom: 1px dashed var(--accent-green); transition: var(--transition);">
+                                <a href="javascript:void(0)" onclick="openClassModal('Pendidikan', '{{ $educationStudent->classroom->name ?? 'Belum Ada Kelas' }}', '{{ $educationStudent->classroom->homeroomTeacher->name ?? 'Belum Ditentukan' }}', '{{ $educationStudent->classroom->assistantTeachers->pluck('name')->join(', ') ?: 'Belum Ditentukan' }}', {{ json_encode($educationClassmates ?? []) }}, 'education')" style="color: inherit; text-decoration: none; border-bottom: 1px dashed var(--accent-green); transition: var(--transition);">
                                     Kelas: {{ $educationStudent->classroom->name ?? 'Belum Ada Kelas' }}
                                 </a>
                             </li>

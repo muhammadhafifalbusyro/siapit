@@ -78,7 +78,7 @@
                                     </div>
                                     <div style="display: flex; justify-content: space-between;">
                                         <span>Asisten:</span>
-                                        <span style="font-weight: 800; color: var(--text-primary);">{{ $cls->assistantTeacher->name ?? '-' }}</span>
+                                        <span style="font-weight: 800; color: var(--text-primary);">{{ $cls->assistantTeachers->pluck('name')->join(', ') ?: '-' }}</span>
                                     </div>
                                 </div>
                             </div>
