@@ -170,8 +170,11 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/kpi/jobdescs/{id}', [DashboardController::class, 'kpiJobdescsUpdate'])->name('super-admin.kpi.jobdescs.update');
         Route::delete('/kpi/jobdescs/{id}', [DashboardController::class, 'kpiJobdescsDestroy'])->name('super-admin.kpi.jobdescs.destroy');
         
+        Route::post('/kpi/settings/mass-save', [DashboardController::class, 'kpiSettingsMassSave'])->name('super-admin.kpi.settings.mass-save');
         Route::get('/kpi/settings/{teacher_id}', [DashboardController::class, 'kpiSettings'])->name('super-admin.kpi.settings');
         Route::post('/kpi/settings/{teacher_id}', [DashboardController::class, 'kpiSettingsSave'])->name('super-admin.kpi.settings.save');
+        Route::get('/kpi/items/offdays/{item_id}', [DashboardController::class, 'kpiItemOffDaysShow'])->name('super-admin.kpi.items.offdays.show');
+        Route::post('/kpi/items/offdays/{item_id}', [DashboardController::class, 'kpiItemOffDaysSave'])->name('super-admin.kpi.items.offdays.save');
         
         Route::post('/kpi/logs/save', [DashboardController::class, 'kpiLogsSave'])->name('super-admin.kpi.logs.save');
         Route::get('/kpi/report/{teacher_id}/{period_id}', [DashboardController::class, 'kpiReport'])->name('super-admin.kpi.report');

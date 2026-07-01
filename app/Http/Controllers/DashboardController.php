@@ -4830,9 +4830,59 @@ class DashboardController extends Controller
         }
 
         $teachers = \App\Models\User::where('role', 'pengajar')->orderBy('name', 'asc')->paginate(100);
+        $periods = \App\Models\TeacherKpiPeriod::orderBy('start_date', 'desc')->get();
+        $jobdescs = \App\Models\TeacherKpiJobdesc::with('items')->orderBy('name', 'asc')->get();
 
-        return view('super-admin.kpi.index', compact('user', 'teachers'));
+        return view('super-admin.kpi.index', compact('user', 'teachers', 'periods', 'jobdescs'));
     }
+
+    public function kpiSettingsMassSave(Request $request)
+    {
+        $request->validate([
+            'teacher_ids'            => 'required|array',
+            'teacher_ids.*'          => 'exists:users,id',
+            'teacher_kpi_period_ids'  => 'required|array',
+            'teacher_kpi_period_ids.*'=> 'exists:teacher_kpi_periods,id',
+            'assigned_jobdesc_id'    => 'required|exists:teacher_kpi_jobdescs,id',
+        ]);
+
+        $teacherIds = $request->input('teacher_ids', []);
+        $periodIds = $request->input('teacher_kpi_period_ids', []);
+        $jobdescId = $request->assigned_jobdesc_id;
+        $offDaysInput = $request->input('off_days', []); // off_days[period_id][item_id] = [date1, date2, ...]
+
+        // Ambil semua poin KPI dari jobdesc yang dipilih
+        $assignedItemIds = \App\Models\TeacherKpiItem::where('teacher_kpi_jobdesc_id', $jobdescId)
+            ->pluck('id')
+            ->toArray();
+
+        foreach ($teacherIds as $teacherId) {
+            // Hapus assignment pengajar ini hanya untuk periode yang dipilih agar tidak merusak data periode lain
+            \App\Models\TeacherKpiAssignment::where('user_id', $teacherId)
+                ->whereIn('teacher_kpi_period_id', $periodIds)
+                ->delete();
+
+            // Insert ulang konfigurasi beserta off-days
+            foreach ($periodIds as $periodId) {
+                foreach ($assignedItemIds as $itemId) {
+                    $offDays = $offDaysInput[$periodId][$itemId] ?? [];
+                    if (!is_array($offDays)) {
+                        $offDays = [];
+                    }
+
+                    \App\Models\TeacherKpiAssignment::create([
+                        'user_id' => $teacherId,
+                        'teacher_kpi_period_id' => $periodId,
+                        'teacher_kpi_item_id' => $itemId,
+                        'off_days' => $offDays,
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->route('super-admin.kpi.index')->with('success', 'Pengaturan Jobdesc, Periode, & Off-Days secara massal berhasil diterapkan.');
+    }
+
 
     public function kpiPeriodsIndex(Request $request)
     {

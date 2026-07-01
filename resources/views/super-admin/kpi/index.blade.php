@@ -171,59 +171,76 @@
                     </div>
                 </div>
 
-                <!-- Search Filter (Live Search) -->
-                <div class="search-input-wrapper" style="padding: 0 0.5rem; max-width: 400px; margin-bottom: 1.5rem;">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="search-teacher" class="search-input-nm" placeholder="Cari nama pengajar...">
+                <!-- Top Filters & Actions -->
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+                    <!-- Search Filter (Live Search) -->
+                    <div class="search-input-wrapper" style="padding: 0 0.5rem; max-width: 380px; margin-bottom: 0; flex-grow: 1;">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-teacher" class="search-input-nm" placeholder="Cari nama pengajar...">
+                    </div>
+
+                    <!-- Mass Actions Button -->
+                    <button type="button" id="btn-mass-assign" onclick="openMassAssignModal()" disabled style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); display: inline-flex; align-items: center; justify-content: center; height: 38px; border-radius: 10px; padding: 0 1.25rem; cursor: not-allowed; color: var(--text-secondary); opacity: 0.6; transition: var(--transition); font-weight: 800; font-size: 0.85rem; gap: 0.4rem;">
+                        <i class="fa-solid fa-users-gear" style="color: var(--accent-blue);"></i> Atur Jobdesc Massal <span id="selected-count-badge" style="display:none; font-size: 0.72rem; background: var(--bg-primary); box-shadow: var(--nm-inset-sm); padding: 0.15rem 0.45rem; border-radius: 6px; color: var(--accent-blue); font-weight: 800;">0</span>
+                    </button>
                 </div>
 
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nama Lengkap</th>
-                                <th>Tipe Pengajar</th>
-                                <th>Email</th>
-                                <th>No. WhatsApp</th>
-                                <th style="width: 320px; text-align: center;">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($teachers as $tch)
-                                <tr class="teacher-row" data-name="{{ strtolower($tch->name) }}">
-                                    <td>
-                                        <div style="font-weight: 800; color: var(--text-primary);">{{ $tch->name }}</div>
-                                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Induk: {{ $tch->username }}</div>
-                                    </td>
-                                    <td>
-                                        <span style="font-size: 0.75rem; font-weight: 800; padding: 0.25rem 0.5rem; border-radius: 6px; background: #e0f2fe; color: #0369a1;">
-                                            {{ $tch->teacher_type ? ucwords(str_replace('_', ' ', $tch->teacher_type)) : 'Matrikulasi & Pendidikan' }}
-                                        </span>
-                                    </td>
-                                    <td>{{ $tch->email }}</td>
-                                    <td>{{ $tch->whatsapp ?? '-' }}</td>
-                                     <td>
-                                         <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
-                                            <a href="{{ route('super-admin.kpi.settings', $tch->id) }}" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); display: inline-flex; align-items: center; justify-content: center; height: 32px; border-radius: 8px; padding: 0 0.75rem; cursor: pointer; color: var(--text-secondary); transition: var(--transition); text-decoration: none; font-weight: 800; font-size: 0.75rem; gap: 0.3rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'">
-                                                <i class="fa-solid fa-gear"></i>
-                                            </a>
-                                            <a href="{{ route('super-admin.kpi.manage', $tch->id) }}" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); display: inline-flex; align-items: center; justify-content: center; height: 32px; border-radius: 8px; padding: 0 0.75rem; cursor: pointer; color: var(--accent-blue); transition: var(--transition); text-decoration: none; font-weight: 800; font-size: 0.75rem; gap: 0.3rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'">
-                                                <i class="fa-solid fa-list-check"></i>
-                                            </a>
-                                            <button onclick="openSelectPeriodModal({{ $tch->id }}, '{{ $tch->name }}')" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); display: inline-flex; align-items: center; justify-content: center; height: 32px; border-radius: 8px; padding: 0 0.75rem; cursor: pointer; color: var(--accent-green); transition: var(--transition); font-weight: 800; font-size: 0.75rem; gap: 0.3rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'">
-                                                <i class="fa-solid fa-file-invoice"></i>
-                                            </button>
-                                        </div>
-                                     </td>
-                                </tr>
-                            @empty
+                <form id="mass-assign-form" method="POST" action="{{ route('super-admin.kpi.settings.mass-save') }}">
+                    @csrf
+                    <div class="table-container">
+                        <table>
+                            <thead>
                                 <tr>
-                                    <td colspan="5" style="text-align: center; color: var(--text-secondary); font-style: italic; padding: 3rem 0;">Belum ada akun pengajar. Buat akun pengajar terlebih dahulu di menu Pengaturan.</td>
+                                    <th style="width: 50px; text-align: center;">
+                                        <input type="checkbox" id="select-all-teachers" onchange="toggleSelectAllTeachers(this)" style="width: 17px; height: 17px; accent-color: var(--accent-blue); cursor: pointer;">
+                                    </th>
+                                    <th>Nama Lengkap</th>
+                                    <th>Tipe Pengajar</th>
+                                    <th>Email</th>
+                                    <th>No. WhatsApp</th>
+                                    <th style="width: 250px; text-align: center;">Aksi</th>
                                 </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                @forelse($teachers as $tch)
+                                    <tr class="teacher-row" data-name="{{ strtolower($tch->name) }}">
+                                        <td style="text-align: center;">
+                                            <input type="checkbox" name="teacher_ids[]" value="{{ $tch->id }}" class="teacher-checkbox" onchange="handleTeacherCheckboxChange()" style="width: 17px; height: 17px; accent-color: var(--accent-blue); cursor: pointer;">
+                                        </td>
+                                        <td>
+                                            <div style="font-weight: 800; color: var(--text-primary);">{{ $tch->name }}</div>
+                                            <div style="font-size: 0.75rem; color: var(--text-secondary);">Induk: {{ $tch->username }}</div>
+                                        </td>
+                                        <td>
+                                            <span style="font-size: 0.75rem; font-weight: 800; padding: 0.25rem 0.5rem; border-radius: 6px; background: #e0f2fe; color: #0369a1;">
+                                                {{ $tch->teacher_type ? ucwords(str_replace('_', ' ', $tch->teacher_type)) : 'Matrikulasi & Pendidikan' }}
+                                            </span>
+                                        </td>
+                                        <td>{{ $tch->email }}</td>
+                                        <td>{{ $tch->whatsapp ?? '-' }}</td>
+                                         <td>
+                                             <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                                                <a href="{{ route('super-admin.kpi.settings', $tch->id) }}" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); display: inline-flex; align-items: center; justify-content: center; height: 32px; border-radius: 8px; padding: 0 0.75rem; cursor: pointer; color: var(--text-secondary); transition: var(--transition); text-decoration: none; font-weight: 800; font-size: 0.75rem; gap: 0.3rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'" title="Edit KPI Detail & Libur">
+                                                    <i class="fa-solid fa-gear"></i>
+                                                </a>
+                                                <a href="{{ route('super-admin.kpi.manage', $tch->id) }}" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); display: inline-flex; align-items: center; justify-content: center; height: 32px; border-radius: 8px; padding: 0 0.75rem; cursor: pointer; color: var(--accent-blue); transition: var(--transition); text-decoration: none; font-weight: 800; font-size: 0.75rem; gap: 0.3rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'" title="Lembar Kontrol KPI">
+                                                    <i class="fa-solid fa-list-check"></i>
+                                                </a>
+                                                <button type="button" onclick="openSelectPeriodModal({{ $tch->id }}, '{{ $tch->name }}')" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); display: inline-flex; align-items: center; justify-content: center; height: 32px; border-radius: 8px; padding: 0 0.75rem; cursor: pointer; color: var(--accent-green); transition: var(--transition); font-weight: 800; font-size: 0.75rem; gap: 0.3rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'" title="Cetak Rapor KPI">
+                                                    <i class="fa-solid fa-file-invoice"></i>
+                                                </button>
+                                            </div>
+                                         </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" style="text-align: center; color: var(--text-secondary); font-style: italic; padding: 3rem 0;">Belum ada akun pengajar. Buat akun pengajar terlebih dahulu di menu Pengaturan.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
 
                 <!-- Pagination UI -->
                 <div class="pagination-wrapper" style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 1.5rem; width: 100%; border-top: 1px solid #d1d9e6; background: var(--bg-primary); margin-top: 1rem; border-radius: 0 0 16px 16px;">
@@ -280,6 +297,71 @@
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
                 <button type="button" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--text-secondary); display: inline-flex; align-items: center; justify-content: center; height: 36px; border-radius: 8px; padding: 0 1.25rem; font-weight: 700; cursor: pointer;" onclick="closeSelectPeriodModal()">Batal</button>
                 <button type="button" onclick="loadKpiReport()" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--accent-green); display: inline-flex; align-items: center; justify-content: center; height: 36px; border-radius: 8px; padding: 0 1.25rem; font-weight: 800; cursor: pointer;">Lihat Rapor</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: MASS ASSIGN PERIODS & JOBDESC -->
+    <div id="mass-assign-modal-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.15); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 1.5rem;">
+        <div class="card-nm" style="width: 100%; max-width: 650px; padding: 2rem; position: relative; max-height: 90vh; overflow-y: auto;">
+            <button style="position: absolute; top: 1rem; right: 1rem; border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center;" onclick="closeMassAssignModal()" type="button"><i class="fa-solid fa-xmark"></i></button>
+            
+            <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 850; margin-bottom: 0.25rem;"><i class="fa-solid fa-users-gear" style="color: var(--accent-blue);"></i> Pengaturan KPI Massal</h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Terapkan Job Description, Periode, dan Hari Libur ke <strong id="mass-count-label" style="color: var(--text-primary);">0</strong> pengajar terpilih.</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 1.25rem; text-align: left;">
+                <!-- Periods Checklist -->
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">Pilih Periode Kerja Aktif (Bisa Lebih Dari Satu)</label>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 150px; overflow-y: auto; padding: 0.75rem; border-radius: 12px; background: var(--bg-primary); box-shadow: var(--nm-inset-sm);">
+                        @foreach($periods as $p)
+                            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 6px; transition: var(--transition);" class="mass-period-checkbox-label">
+                                <input type="checkbox" name="mass_period_ids[]" value="{{ $p->id }}" onchange="handleMassPeriodCheckboxChange()" style="cursor: pointer;">
+                                <span style="font-weight: 700; color: var(--text-primary);">{{ $p->name }}</span>
+                                <span style="font-size: 0.75rem; color: var(--text-secondary);">({{ $p->start_date }} s/d {{ $p->end_date }})</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Jobdesc Search-Select -->
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; position: relative;">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">Pilih Kategori Job Description</label>
+                    <div class="custom-select-container" id="mass-jobdesc-select">
+                        <div class="custom-select-trigger" onclick="toggleMassDropdown(event)">
+                            <input type="text" id="mass-jobdesc-search-input" placeholder="Cari & pilih Job Description..." autocomplete="off" oninput="filterMassOptions(this.value)">
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <input type="hidden" name="mass_jobdesc_id" id="mass-jobdesc-id-val">
+                        <div class="custom-select-dropdown" id="mass-jobdesc-dropdown" style="top: 45px;">
+                            <div class="custom-select-option" data-value="" onclick="selectMassOption(this, event)" style="color: var(--text-secondary); font-style: italic;">
+                                - Pilih Job Description -
+                            </div>
+                            @foreach($jobdescs as $jd)
+                                <div class="custom-select-option" data-value="{{ $jd->id }}" data-name="{{ strtolower($jd->name) }}" onclick="selectMassOption(this, event)">
+                                    {{ $jd->name }} ({{ $jd->items->count() }} Poin KPI)
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI Items & Off Days Settings Container (Dinamis via JS) -->
+                <div id="mass-kpi-items-offdays-section" style="display: none; flex-direction: column; gap: 0.75rem;">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);"><i class="fa-solid fa-calendar-xmark" style="color: var(--accent-blue);"></i> Pengaturan Hari Libur (Off-Days) per Poin KPI</label>
+                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Pilih tanggal libur di tiap item KPI untuk semua pengajar terpilih.</p>
+                    
+                    <div id="mass-kpi-items-offdays-container" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <!-- Dinamis via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 2rem;">
+                <button type="button" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--text-secondary); display: inline-flex; align-items: center; justify-content: center; height: 36px; border-radius: 8px; padding: 0 1.25rem; font-weight: 700; cursor: pointer;" onclick="closeMassAssignModal()">Batal</button>
+                <button type="button" onclick="submitMassAssign()" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--accent-blue); display: inline-flex; align-items: center; justify-content: center; height: 36px; border-radius: 8px; padding: 0 1.25rem; font-weight: 800; cursor: pointer; gap: 0.3rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'">
+                    <i class="fa-solid fa-floppy-disk"></i> Terapkan
+                </button>
             </div>
         </div>
     </div>
@@ -475,8 +557,85 @@
             font-weight: 600;
             transition: var(--transition);
         }
-        .search-input-nm:focus {
+        /* Custom Search Select Neumorphic Styling */
+        .custom-select-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .custom-select-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            height: 42px;
+            padding: 0 1rem;
+            border-radius: 12px;
+            background: var(--bg-primary);
             box-shadow: var(--nm-flat-sm);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .custom-select-trigger input {
+            width: 90%;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .custom-select-trigger i {
+            color: var(--text-secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .custom-select-container.open .custom-select-trigger i {
+            transform: rotate(180deg);
+        }
+
+        .custom-select-dropdown {
+            position: absolute;
+            top: 48px;
+            left: 0;
+            right: 0;
+            background: var(--bg-primary);
+            box-shadow: 6px 6px 15px #beccd7, -6px -6px 15px #ffffff;
+            border-radius: 12px;
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            padding: 0.5rem;
+        }
+
+        .custom-select-dropdown.show {
+            display: block;
+        }
+
+        .custom-select-option {
+            padding: 0.75rem 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .custom-select-option:hover {
+            background: var(--bg-secondary);
+            color: var(--accent-blue);
+        }
+
+        .custom-select-option.selected {
+            background: var(--bg-secondary);
+            color: var(--accent-blue);
+            box-shadow: var(--nm-inset-sm);
         }
     </style>
 
@@ -624,6 +783,335 @@
                     }
                 });
             });
+        }
+
+        // ---- Mass Assign JS Actions ----
+        const allJobdescs = @json($jobdescs);
+        const allPeriods = @json($periods);
+        const calendarState = {}; // calKey => { year, month }
+
+        const selectAllCheckbox = document.getElementById('select-all-teachers');
+        const teacherCheckboxes = document.querySelectorAll('.teacher-checkbox');
+        const btnMassAssign = document.getElementById('btn-mass-assign');
+        const badgeCount = document.getElementById('selected-count-badge');
+        const massModal = document.getElementById('mass-assign-modal-overlay');
+        const massCountLabel = document.getElementById('mass-count-label');
+        const massForm = document.getElementById('mass-assign-form');
+
+        function toggleSelectAllTeachers(master) {
+            teacherCheckboxes.forEach(cb => {
+                // Only toggle if row is visible
+                const row = cb.closest('.teacher-row');
+                if (row && row.style.display !== 'none') {
+                    cb.checked = master.checked;
+                }
+            });
+            handleTeacherCheckboxChange();
+        }
+
+        function handleTeacherCheckboxChange() {
+            const checkedCount = Array.from(teacherCheckboxes).filter(cb => cb.checked).length;
+            if (checkedCount > 0) {
+                btnMassAssign.disabled = false;
+                btnMassAssign.style.cursor = 'pointer';
+                btnMassAssign.style.opacity = '1';
+                btnMassAssign.style.boxShadow = 'var(--nm-flat-sm)';
+                badgeCount.textContent = checkedCount;
+                badgeCount.style.display = 'inline-block';
+            } else {
+                btnMassAssign.disabled = true;
+                btnMassAssign.style.cursor = 'not-allowed';
+                btnMassAssign.style.opacity = '0.6';
+                btnMassAssign.style.boxShadow = 'var(--nm-flat-sm)';
+                badgeCount.style.display = 'none';
+            }
+        }
+
+        function openMassAssignModal() {
+            const checkedCount = Array.from(teacherCheckboxes).filter(cb => cb.checked).length;
+            massCountLabel.textContent = checkedCount;
+
+            // Clear previous mass selections inside modal
+            document.querySelectorAll('input[name="mass_period_ids[]"]').forEach(cb => cb.checked = false);
+            document.getElementById('mass-jobdesc-id-val').value = '';
+            document.getElementById('mass-jobdesc-search-input').value = '';
+            document.getElementById('mass-kpi-items-offdays-section').style.display = 'none';
+            document.getElementById('mass-kpi-items-offdays-container').innerHTML = '';
+
+            massModal.style.display = 'flex';
+        }
+
+        function closeMassAssignModal() {
+            massModal.style.display = 'none';
+        }
+
+        // Mass Jobdesc Dropdown handler
+        const massSelectContainer = document.getElementById('mass-jobdesc-select');
+        const massSelectDropdown = document.getElementById('mass-jobdesc-dropdown');
+        const massSearchInput = document.getElementById('mass-jobdesc-search-input');
+        const massHiddenInput = document.getElementById('mass-jobdesc-id-val');
+
+        function toggleMassDropdown(event) {
+            event.stopPropagation();
+            massSelectDropdown.classList.toggle('show');
+        }
+
+        function filterMassOptions(query) {
+            massSelectDropdown.classList.add('show');
+            const lowerQuery = query.toLowerCase().trim();
+            massSelectDropdown.querySelectorAll('.custom-select-option').forEach(opt => {
+                const optName = opt.getAttribute('data-name');
+                if (!optName) return;
+                opt.style.display = optName.includes(lowerQuery) ? 'block' : 'none';
+            });
+        }
+
+        function selectMassOption(element, event) {
+            event.stopPropagation();
+            const value = element.getAttribute('data-value');
+            const text = element.textContent.trim();
+
+            massHiddenInput.value = value;
+            massSearchInput.value = value === '' ? '' : text;
+
+            massSelectDropdown.querySelectorAll('.custom-select-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            massSelectDropdown.classList.remove('show');
+
+            renderMassOffDaysSection(value ? parseInt(value) : null);
+        }
+
+        document.addEventListener('click', function(e) {
+            if (massSelectContainer && !massSelectContainer.contains(e.target)) {
+                massSelectDropdown.classList.remove('show');
+            }
+        });
+
+        // Trigger render calendar when period changes
+        function handleMassPeriodCheckboxChange() {
+            const jobdescId = massHiddenInput.value ? parseInt(massHiddenInput.value) : null;
+            renderMassOffDaysSection(jobdescId);
+        }
+
+        function getSelectedMassPeriodIds() {
+            return Array.from(document.querySelectorAll('input[name="mass_period_ids[]"]:checked')).map(cb => parseInt(cb.value));
+        }
+
+        // Render Off-Days Section for Mass Modal
+        function renderMassOffDaysSection(jobdescId) {
+            const section = document.getElementById('mass-kpi-items-offdays-section');
+            const container = document.getElementById('mass-kpi-items-offdays-container');
+            container.innerHTML = '';
+
+            const selectedPeriodIds = getSelectedMassPeriodIds();
+
+            if (!jobdescId || selectedPeriodIds.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'flex';
+
+            const jobdesc = allJobdescs.find(jd => jd.id === jobdescId);
+            if (!jobdesc || !jobdesc.items || jobdesc.items.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-secondary); font-style: italic; font-size: 0.85rem; padding: 1rem 0;">Kategori ini belum memiliki poin KPI. Tambah poin KPI terlebih dahulu di menu Manajemen Jobdesc.</div>';
+                return;
+            }
+
+            jobdesc.items.forEach(item => {
+                const itemCard = document.createElement('div');
+                itemCard.className = 'card-nm';
+                itemCard.style.cssText = 'padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem;';
+                itemCard.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #d1d9e6; padding-bottom: 0.5rem;">
+                        <span style="font-weight: 850; color: var(--text-primary); font-size: 0.95rem;">${item.name}</span>
+                        <span style="font-size: 0.75rem; background: var(--bg-primary); box-shadow: var(--nm-inset-sm); padding: 0.2rem 0.5rem; border-radius: 5px; font-weight: 700; color: var(--text-secondary);">Bobot: ${item.weight}%</span>
+                    </div>
+                `;
+
+                selectedPeriodIds.forEach(periodId => {
+                    const period = allPeriods.find(p => p.id === periodId);
+                    if (!period) return;
+
+                    const calKey = `${periodId}_${item.id}`;
+                    if (!calendarState[calKey]) {
+                        const startD = new Date(period.start_date);
+                        calendarState[calKey] = {
+                            year: startD.getFullYear(),
+                            month: startD.getMonth()
+                        };
+                    }
+
+                    const periodWrap = document.createElement('div');
+                    periodWrap.style.cssText = 'background: var(--bg-secondary); border-radius: 10px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;';
+                    periodWrap.innerHTML = `<div style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.25rem;"><i class="fa-solid fa-calendar-days"></i> ${period.name} <span style="font-weight: 500;">(${period.start_date} s/d ${period.end_date})</span></div>`;
+
+                    const calDiv = document.createElement('div');
+                    calDiv.className = 'offday-calendar';
+                    calDiv.setAttribute('data-cal-key', calKey);
+                    renderCalendar(calDiv, calKey, item.id, periodId, period.start_date, period.end_date, []);
+                    periodWrap.appendChild(calDiv);
+
+                    itemCard.appendChild(periodWrap);
+                });
+
+                container.appendChild(itemCard);
+            });
+        }
+
+        // Render mini calendar inside modal
+        function renderCalendar(container, calKey, itemId, periodId, startDate, endDate, currentOffDays) {
+            container.innerHTML = '';
+            const state = calendarState[calKey];
+            const year = state.year;
+            const month = state.month;
+
+            const periodStart = new Date(startDate + 'T00:00:00');
+            const periodEnd = new Date(endDate + 'T00:00:00');
+
+            const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+            const navHeader = document.createElement('div');
+            navHeader.style.cssText = 'display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;';
+            navHeader.innerHTML = `
+                <button type="button" onclick="prevMonth('${calKey}', ${itemId}, ${periodId}, '${startDate}', '${endDate}')" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); border-radius: 6px; width: 24px; height: 24px; cursor: pointer; color: var(--text-secondary); font-size: 0.7rem; display:flex; align-items:center; justify-content:center;">&lt;</button>
+                <span style="font-size: 0.78rem; font-weight: 800; color: var(--text-primary);">${monthNames[month]} ${year}</span>
+                <button type="button" onclick="nextMonth('${calKey}', ${itemId}, ${periodId}, '${startDate}', '${endDate}')" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); border-radius: 6px; width: 24px; height: 24px; cursor: pointer; color: var(--text-secondary); font-size: 0.7rem; display:flex; align-items:center; justify-content:center;">&gt;</button>
+            `;
+            container.appendChild(navHeader);
+
+            const dayNames = ['M','S','R','K','J','S','A'];
+            const dayGrid = document.createElement('div');
+            dayGrid.style.cssText = 'display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;';
+            dayNames.forEach(d => {
+                const lbl = document.createElement('div');
+                lbl.style.cssText = 'text-align: center; font-size: 0.65rem; font-weight: 700; color: var(--text-secondary); padding: 2px 0;';
+                lbl.textContent = d;
+                dayGrid.appendChild(lbl);
+            });
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const startOffset = (firstDay === 0) ? 6 : firstDay - 1;
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < startOffset; i++) {
+                const blank = document.createElement('div');
+                dayGrid.appendChild(blank);
+            }
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const dateObj = new Date(dateStr + 'T00:00:00');
+                const inPeriod = dateObj >= periodStart && dateObj <= periodEnd;
+                const isChecked = currentOffDays.includes(dateStr);
+
+                if (!inPeriod) {
+                    const cell = document.createElement('div');
+                    cell.style.cssText = 'text-align: center; font-size: 0.7rem; padding: 3px 0; color: var(--text-secondary); opacity: 0.3;';
+                    cell.textContent = d;
+                    dayGrid.appendChild(cell);
+                } else {
+                    const label = document.createElement('label');
+                    label.style.cssText = `display: flex; align-items: center; justify-content: center; border-radius: 5px; cursor: pointer; font-size: 0.7rem; font-weight: 700; padding: 3px 0; transition: background 0.15s; background: ${isChecked ? 'var(--accent-blue)' : 'transparent'}; color: ${isChecked ? '#fff' : 'var(--text-primary)'};`;
+                    label.title = dateStr;
+
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.name = `off_days[${periodId}][${itemId}][]`;
+                    cb.value = dateStr;
+                    cb.checked = isChecked;
+                    cb.style.display = 'none';
+                    cb.addEventListener('change', function() {
+                        if (this.checked) {
+                            label.style.background = 'var(--accent-blue)';
+                            label.style.color = '#fff';
+                        } else {
+                            label.style.background = 'transparent';
+                            label.style.color = 'var(--text-primary)';
+                        }
+                    });
+
+                    label.appendChild(cb);
+                    label.appendChild(document.createTextNode(d));
+                    dayGrid.appendChild(label);
+                }
+            }
+
+            container.appendChild(dayGrid);
+        }
+
+        window.prevMonth = function(calKey, itemId, periodId, startDate, endDate) {
+            const state = calendarState[calKey];
+            if (state.month === 0) { state.month = 11; state.year--; }
+            else { state.month--; }
+            refreshCalendar(calKey, itemId, periodId, startDate, endDate);
+        };
+
+        window.nextMonth = function(calKey, itemId, periodId, startDate, endDate) {
+            const state = calendarState[calKey];
+            if (state.month === 11) { state.month = 0; state.year++; }
+            else { state.month++; }
+            refreshCalendar(calKey, itemId, periodId, startDate, endDate);
+        };
+
+        function refreshCalendar(calKey, itemId, periodId, startDate, endDate) {
+            const calContainer = document.querySelector(`.offday-calendar[data-cal-key="${calKey}"]`);
+            if (!calContainer) return;
+            const currentOffDays = Array.from(calContainer.querySelectorAll('input[type=checkbox]:checked')).map(cb => cb.value);
+            renderCalendar(calContainer, calKey, itemId, periodId, startDate, endDate, currentOffDays);
+        }
+
+        // Submit Mass Assignments
+        function submitMassAssign() {
+            const selectedPeriods = getSelectedMassPeriodIds();
+            if (selectedPeriods.length === 0) {
+                alert('Silakan pilih minimal satu periode.');
+                return;
+            }
+
+            if (!massHiddenInput.value) {
+                alert('Silakan pilih Job Description.');
+                return;
+            }
+
+            if (!confirm('Terapkan Job Description, Periode, & Hari Libur ini ke pengajar terpilih secara massal?')) {
+                return;
+            }
+
+            const existingDynamics = massForm.querySelectorAll('.dynamic-mass-input');
+            existingDynamics.forEach(el => el.remove());
+
+            // Add selected periods as inputs
+            selectedPeriods.forEach(pId => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'teacher_kpi_period_ids[]';
+                input.value = pId;
+                input.className = 'dynamic-mass-input';
+                massForm.appendChild(input);
+            });
+
+            // Add assigned jobdesc ID as input
+            const jobdescInput = document.createElement('input');
+            jobdescInput.type = 'hidden';
+            jobdescInput.name = 'assigned_jobdesc_id';
+            jobdescInput.value = massHiddenInput.value;
+            jobdescInput.className = 'dynamic-mass-input';
+            massForm.appendChild(jobdescInput);
+
+            // Move all generated off-days checkbox elements from mass-modal container into massForm dynamically
+            const offDaysContainer = document.getElementById('mass-kpi-items-offdays-container');
+            const checkBoxes = offDaysContainer.querySelectorAll('input[type="checkbox"]:checked');
+            checkBoxes.forEach(cb => {
+                const clonedInput = document.createElement('input');
+                clonedInput.type = 'hidden';
+                clonedInput.name = cb.name;
+                clonedInput.value = cb.value;
+                clonedInput.className = 'dynamic-mass-input';
+                massForm.appendChild(clonedInput);
+            });
+
+            // Submit form
+            massForm.submit();
         }
     </script>
 </body>
