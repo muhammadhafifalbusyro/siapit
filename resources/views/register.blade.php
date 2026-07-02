@@ -1054,6 +1054,13 @@
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
 
+                // Prevent double submit
+                const submitBtn = registerForm.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.6';
+                submitBtn.innerHTML = '<span><i class="fa-solid fa-spinner fa-spin"></i> Sedang Menyimpan...</span>';
+
                 const cleanPhone = (val) => {
                     let cleaned = val.replace(/\D/g, ''); 
                     if (cleaned.startsWith('0')) {
@@ -1165,6 +1172,10 @@
                     }
                 } catch (error) {
                     showToast(error.message, 'error');
+                    // Reset button state if failed
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                    submitBtn.innerHTML = originalBtnText;
                 }
             });
         });
