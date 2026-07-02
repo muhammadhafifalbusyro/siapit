@@ -252,14 +252,24 @@
                     @endif
 
                     {{-- Pagination Elements --}}
-                    @if($teachers->lastPage() > 0)
-                        @foreach($teachers->getUrlRange(1, $teachers->lastPage()) as $page => $url)
-                            @if($page == $teachers->currentPage())
-                                <span class="pagination-btn active" style="box-shadow: var(--nm-inset-sm); color: var(--accent-blue); font-weight: 800; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 2.5px solid var(--accent-blue);">{{ $page }}</span>
-                            @else
-                                <a href="{{ $url }}" class="pagination-btn" style="box-shadow: var(--nm-flat-sm); color: var(--text-primary); font-weight: 700; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: var(--transition);">{{ $page }}</a>
+                    @php
+                        $currentPage = $teachers->currentPage();
+                        $lastPage = $teachers->lastPage();
+                        $sidePages = 2;
+                    @endphp
+
+                    @if($lastPage > 0)
+                        @for ($page = 1; $page <= $lastPage; $page++)
+                            @if ($page == 1 || $page == $lastPage || abs($page - $currentPage) <= $sidePages)
+                                @if ($page == $currentPage)
+                                    <span class="pagination-btn active" style="box-shadow: var(--nm-inset-sm); color: var(--accent-blue); font-weight: 800; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 2.5px solid var(--accent-blue);">{{ $page }}</span>
+                                @else
+                                    <a href="{{ $teachers->url($page) }}" class="pagination-btn" style="box-shadow: var(--nm-flat-sm); color: var(--text-primary); font-weight: 700; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: var(--transition);">{{ $page }}</a>
+                                @endif
+                            @elseif ($page == 2 || $page == $lastPage - 1)
+                                <span class="pagination-dots" style="color: var(--text-secondary); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-weight: 800; user-select: none;">...</span>
                             @endif
-                        @endforeach
+                        @endfor
                     @else
                         <span class="pagination-btn active" style="box-shadow: var(--nm-inset-sm); color: var(--accent-blue); font-weight: 800; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 2.5px solid var(--accent-blue);">1</span>
                     @endif

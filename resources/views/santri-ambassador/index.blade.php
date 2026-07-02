@@ -792,17 +792,27 @@
                 @endif
 
                 {{-- Pagination Elements --}}
-                @foreach($students->getUrlRange(1, $students->lastPage()) as $page => $url)
-                    @if($page == $students->currentPage())
-                        <span style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); border: none; color: #ffffff; width: 42px; height: 42px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">
-                            {{ $page }}
-                        </span>
-                    @else
-                        <a href="{{ $url }}" style="background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.05); color: var(--text-dark); width: 42px; height: 42px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 600; text-decoration: none; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: var(--transition);" onmouseover="this.style.transform='translateY(-2px)'; this.style.color='var(--accent-blue)'" onmouseout="this.style.transform='none'; this.style.color='var(--text-dark)'">
-                            {{ $page }}
-                        </a>
+                @php
+                    $currentPage = $students->currentPage();
+                    $lastPage = $students->lastPage();
+                    $sidePages = 2;
+                @endphp
+
+                @for ($page = 1; $page <= $lastPage; $page++)
+                    @if ($page == 1 || $page == $lastPage || abs($page - $currentPage) <= $sidePages)
+                        @if ($page == $currentPage)
+                            <span style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); border: none; color: #ffffff; width: 42px; height: 42px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">
+                                {{ $page }}
+                            </span>
+                        @else
+                            <a href="{{ $students->url($page) }}" style="background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.05); color: var(--text-dark); width: 42px; height: 42px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 600; text-decoration: none; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: var(--transition);" onmouseover="this.style.transform='translateY(-2px)'; this.style.color='var(--accent-blue)'" onmouseout="this.style.transform='none'; this.style.color='var(--text-dark)'">
+                                {{ $page }}
+                            </a>
+                        @endif
+                    @elseif ($page == 2 || $page == $lastPage - 1)
+                        <span style="color: var(--text-muted); width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; user-select: none;">...</span>
                     @endif
-                @endforeach
+                @endfor
 
                 {{-- Next Page Link --}}
                 @if($students->hasMorePages())
