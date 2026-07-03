@@ -194,16 +194,9 @@
                                             <a href="{{ route('pengajar.career.reports.management', $ps->id) }}" class="btn-action-sm" style="color: var(--accent-blue); box-shadow: var(--nm-flat-sm);" title="Manajemen Target Karya & Log">
                                                 <i class="fa-solid fa-list-check"></i>
                                             </a>
-
-                                            <!-- Form input nilai bulanan -->
-                                            @if($careerStudent)
-                                                <button class="btn-action-sm" onclick="openPenilaianModal({{ $careerStudent->id }}, '{{ $ps->registration->name }}', {{ $report ? $report->soft_comm : 'null' }}, {{ $report ? $report->soft_team : 'null' }}, {{ $report ? $report->soft_disc : 'null' }}, {{ $report ? $report->hard_qual : 'null' }}, {{ $report ? $report->hard_spd : 'null' }}, {{ $report ? $report->hard_prob : 'null' }}, '{{ $report ? addslashes($report->notes) : '' }}')" style="color: var(--accent-green); box-shadow: var(--nm-flat-sm);" title="Input Nilai Bulanan">
-                                                    <i class="fa-solid fa-pen-to-square"></i>
-                                                </button>
-                                            @endif
                                             
                                             <!-- Status select status magang -->
-                                            <div class="input-wrapper" style="width: 105px; padding: 0.15rem 0.25rem; display: inline-block;">
+                                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 8px; padding: 0.15rem 0.25rem; width: 105px; display: inline-block;">
                                                 <select onchange="updateCareerStatus({{ $ps->id }}, this.value)" style="padding: 0.2rem; font-size: 0.75rem; font-weight: 700; height: 26px; width: 100%; border: none; background: transparent; outline: none; color: var(--text-primary); cursor: pointer;">
                                                     <option value="active" {{ $ps->career_status === 'active' ? 'selected' : '' }}>Aktif</option>
                                                     <option value="passed" {{ $ps->career_status === 'passed' ? 'selected' : '' }}>Lulus</option>

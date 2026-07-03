@@ -176,7 +176,7 @@
                     <!-- Search Filter (Live Search) -->
                     <div class="search-input-wrapper" style="padding: 0 0.5rem; max-width: 380px; margin-bottom: 0; flex-grow: 1;">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="search-teacher" class="search-input-nm" placeholder="Cari nama pengajar...">
+                        <input type="text" id="search-teacher" placeholder="Cari nama pengajar..." style="width: 100%; border: none; outline: none; background: var(--bg-primary); box-shadow: var(--nm-inset-sm); padding: 0.85rem 1rem 0.85rem 2.75rem; border-radius: 12px; font-family: var(--font-body); color: var(--text-primary); font-weight: 600;">
                     </div>
 
                     <!-- Mass Actions Button -->
@@ -294,7 +294,7 @@
             <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.5rem;" id="select-modal-subtitle">Pilih periode penilaian KPI pengajar untuk dicetak.</p>
             
             <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
-                <div class="input-group">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label>Periode Penilaian</label>
                     <div class="select-wrapper">
                         <select id="report-period-select" style="width: 100%; border: none; background: transparent; outline: none; font-weight: 600; color: var(--text-primary); padding: 0 1rem; height: 100%;">

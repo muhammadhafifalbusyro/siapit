@@ -505,10 +505,10 @@
         <!-- Filter Grid -->
         <div class="dashboard-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
             <form method="GET" action="{{ route('super-admin.career.settings') }}" style="display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: flex-end; width: 100%;">
-                <div style="flex: 1; min-width: 180px;" class="input-group">
-                    <label>Program Pendidikan</label>
-                    <div class="input-wrapper">
-                        <select name="education_program_id" onchange="this.form.submit()">
+                <div style="flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Program Pendidikan</label>
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <select name="education_program_id" onchange="this.form.submit()" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                             <option value="all" {{ $selectedProgramId == 'all' ? 'selected' : '' }}>Semua Program</option>
                             @foreach($programs as $prog)
                                 <option value="{{ $prog->id }}" {{ $selectedProgramId == $prog->id ? 'selected' : '' }}>{{ $prog->name }}</option>
@@ -516,10 +516,10 @@
                         </select>
                     </div>
                 </div>
-                <div style="flex: 1; min-width: 180px;" class="input-group">
-                    <label>Tahun Ajaran</label>
-                    <div class="input-wrapper">
-                        <select name="academic_year_id" onchange="this.form.submit()">
+                <div style="flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Tahun Ajaran</label>
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <select name="academic_year_id" onchange="this.form.submit()" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                             <option value="all" {{ $selectedAcademicYearId == 'all' ? 'selected' : '' }}>Semua Tahun Ajaran</option>
                             @foreach($academicYears as $ay)
                                 <option value="{{ $ay->id }}" {{ $selectedAcademicYearId == $ay->id ? 'selected' : '' }}>{{ $ay->name }}</option>
@@ -527,10 +527,10 @@
                         </select>
                     </div>
                 </div>
-                <div style="flex: 1; min-width: 180px;" class="input-group">
-                    <label>Gelombang / Batch</label>
-                    <div class="input-wrapper">
-                        <select name="batch_id" onchange="this.form.submit()">
+                <div style="flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Gelombang / Batch</label>
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <select name="batch_id" onchange="this.form.submit()" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                             <option value="all" {{ $selectedBatchId == 'all' ? 'selected' : '' }}>Semua Gelombang</option>
                             @foreach($batches as $b)
                                 <option value="{{ $b->id }}" {{ $selectedBatchId == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>

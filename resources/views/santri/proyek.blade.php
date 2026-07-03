@@ -358,31 +358,31 @@
                                         <input type="hidden" name="_method" id="income-form-method" value="POST">
                                         <input type="hidden" name="education_student_id" value="{{ $educationStudent->id }}">
 
-                                        <div class="input-group">
-                                            <label>Sumber / Deskripsi Pekerjaan</label>
-                                            <div class="input-wrapper">
-                                                <input type="text" name="source" id="income_source" placeholder="Contoh: Freelance Landing Page, Project Mobile App" required>
+                                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                            <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Sumber / Deskripsi Pekerjaan</label>
+                                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                                <input type="text" name="source" id="income_source" placeholder="Contoh: Freelance Landing Page, Project Mobile App" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                             </div>
                                         </div>
 
-                                        <div class="input-group">
-                                            <label>Nominal Pendapatan (Rp)</label>
-                                            <div class="input-wrapper">
-                                                <input type="text" name="amount" id="income_amount" placeholder="Rp 0" onkeyup="formatCurrencyInput(this)" required>
+                                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                            <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Nominal Pendapatan (Rp)</label>
+                                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                                <input type="text" name="amount" id="income_amount" placeholder="Rp 0" onkeyup="formatCurrencyInput(this)" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                             </div>
                                         </div>
 
-                                        <div class="input-group">
-                                            <label>Tanggal Diterima</label>
-                                            <div class="input-wrapper">
-                                                <input type="date" name="date" id="income_date" value="{{ date('Y-m-d') }}" required>
+                                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                            <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Tanggal Diterima</label>
+                                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                                <input type="date" name="date" id="income_date" value="{{ date('Y-m-d') }}" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                             </div>
                                         </div>
 
-                                        <div class="input-group">
-                                            <label>Keterangan Tambahan</label>
-                                            <div class="input-wrapper">
-                                                <textarea name="notes" id="income_notes" rows="3" placeholder="Opsional" style="resize: vertical;"></textarea>
+                                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                            <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Keterangan Tambahan</label>
+                                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                                <textarea name="notes" id="income_notes" rows="3" placeholder="Opsional" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%; resize: vertical;"></textarea>
                                             </div>
                                         </div>
 
@@ -476,14 +476,14 @@
                                             <input type="hidden" name="_method" id="form-method" value="POST">
 
                                             @foreach($activeContext->fields as $f)
-                                                <div class="input-group">
-                                                    <label>{{ $f->label }}</label>
-                                                    <div class="input-wrapper">
+                                                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                                    <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">{{ $f->label }}</label>
+                                                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
                                                         @if($f->type === 'multiple_images')
-                                                            <input type="file" name="field_{{ $f->id }}[]" multiple accept="image/*" id="input_field_{{ $f->id }}">
+                                                            <input type="file" name="field_{{ $f->id }}[]" multiple accept="image/*" id="input_field_{{ $f->id }}" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; width: 100%;">
                                                             <div style="font-size: 0.7rem; color: var(--text-secondary); padding: 0.25rem 0.5rem; font-weight: 700;"><i class="fa-solid fa-circle-info"></i> Anda dapat memilih beberapa file gambar sekaligus.</div>
                                                         @else
-                                                            <input type="text" name="field_{{ $f->id }}" id="input_field_{{ $f->id }}" placeholder="{{ $f->placeholder }}" required>
+                                                            <input type="text" name="field_{{ $f->id }}" id="input_field_{{ $f->id }}" placeholder="{{ $f->placeholder }}" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                                         @endif
                                                     </div>
                                                 </div>

@@ -490,17 +490,17 @@
                         @csrf
                         <input type="hidden" name="_method" id="context-form-method" value="POST">
                         
-                        <div class="input-group">
-                            <label>Nama Konteks Karya</label>
-                            <div class="input-wrapper">
-                                <input type="text" name="name" id="context-name" required placeholder="Misal: PROYEK PERUSAHAAN / PROYEK MANDIRI">
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Nama Konteks Karya</label>
+                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                <input type="text" name="name" id="context-name" required placeholder="Misal: PROYEK PERUSAHAAN / PROYEK MANDIRI" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                             </div>
                         </div>
 
-                        <div class="input-group">
-                            <label>Keterangan / Kriteria</label>
-                            <div class="input-wrapper">
-                                <input type="text" name="description" id="context-description" placeholder="Keterangan singkat konteks karya">
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Keterangan / Kriteria</label>
+                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                <input type="text" name="description" id="context-description" placeholder="Keterangan singkat konteks karya" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                             </div>
                         </div>
 
@@ -522,10 +522,10 @@
                         @csrf
                         <input type="hidden" name="_method" id="field-form-method" value="POST">
                         
-                        <div class="input-group">
-                            <label>Pilih Konteks Karya</label>
-                            <div class="input-wrapper">
-                                <select name="career_target_context_id" id="field-context-id" required>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Pilih Konteks Karya</label>
+                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                <select name="career_target_context_id" id="field-context-id" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                     <option value="">-- Pilih Konteks --</option>
                                     @foreach($contexts as $ctx)
                                         <option value="{{ $ctx->id }}">{{ $ctx->name }}</option>
@@ -534,24 +534,24 @@
                             </div>
                         </div>
 
-                        <div class="input-group">
-                            <label>Nama Label Kolom</label>
-                            <div class="input-wrapper">
-                                <input type="text" name="label" id="field-label" required placeholder="Misal: Nama Proyek / Link GitHub">
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Nama Label Kolom</label>
+                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                <input type="text" name="label" id="field-label" required placeholder="Misal: Nama Proyek / Link GitHub" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                             </div>
                         </div>
 
-                        <div class="input-group">
-                            <label>Placeholder</label>
-                            <div class="input-wrapper">
-                                <input type="text" name="placeholder" id="field-placeholder" placeholder="Misal: Tulis nama proyek yang Anda kerjakan">
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Placeholder</label>
+                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                <input type="text" name="placeholder" id="field-placeholder" placeholder="Misal: Tulis nama proyek yang Anda kerjakan" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                             </div>
                         </div>
 
-                        <div class="input-group">
-                            <label>Tipe Inputan</label>
-                            <div class="input-wrapper">
-                                <select name="type" id="field-type" required>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Tipe Inputan</label>
+                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                <select name="type" id="field-type" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                     <option value="text">Text Biasa</option>
                                     <option value="link">Link URL</option>
                                     <option value="multiple_images">Upload Multiple Image</option>

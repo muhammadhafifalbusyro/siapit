@@ -493,11 +493,11 @@
 
         <div class="dashboard-panel">
             <!-- Filter Row -->
-            <form method="GET" action="{{ route('super-admin.career.reports') }}" class="filter-row">
-                <div class="input-group" style="width: 180px;">
-                    <label>Program Pendidikan</label>
-                    <div class="input-wrapper">
-                        <select name="education_program_id" onchange="this.form.submit()">
+            <form method="GET" action="{{ route('super-admin.career.reports') }}" style="display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 2rem; padding: 1.5rem; border-radius: 20px; box-shadow: var(--nm-flat); border: 1.5px solid rgba(255,255,255,0.4); background: var(--bg-primary);">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Program Pendidikan</label>
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <select name="education_program_id" onchange="this.form.submit()" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 180px;">
                             <option value="all">Semua Program</option>
                             @foreach($programs as $p)
                                 <option value="{{ $p->id }}" {{ $selectedProgramId == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
@@ -506,10 +506,10 @@
                     </div>
                 </div>
 
-                <div class="input-group" style="width: 180px;">
-                    <label>Tahun Ajaran</label>
-                    <div class="input-wrapper">
-                        <select name="academic_year_id" onchange="this.form.submit()">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Tahun Ajaran</label>
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <select name="academic_year_id" onchange="this.form.submit()" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 180px;">
                             <option value="all">Semua Tahun</option>
                             @foreach($academicYears as $ay)
                                 <option value="{{ $ay->id }}" {{ $selectedAcademicYearId == $ay->id ? 'selected' : '' }}>{{ $ay->name }}</option>
@@ -518,10 +518,10 @@
                     </div>
                 </div>
 
-                <div class="input-group" style="width: 180px;">
-                    <label>Gelombang / Batch</label>
-                    <div class="input-wrapper">
-                        <select name="batch_id" onchange="this.form.submit()">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Gelombang / Batch</label>
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <select name="batch_id" onchange="this.form.submit()" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 180px;">
                             <option value="all">Semua Batch</option>
                             @foreach($batches as $b)
                                 <option value="{{ $b->id }}" {{ $selectedBatchId == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
@@ -564,8 +564,8 @@
                                             <i class="fa-solid fa-list-check"></i>
                                         </a>
                                         
-                                        <div class="input-wrapper" style="width: 105px; padding: 0.15rem 0.25rem;">
-                                            <select onchange="updateCareerStatus({{ $ps->id }}, this.value)" style="padding: 0.2rem; font-size: 0.75rem; font-weight: 700; height: 26px; width: 100%;">
+                                        <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 8px; padding: 0.15rem 0.25rem; width: 105px; display: inline-block;">
+                                            <select onchange="updateCareerStatus({{ $ps->id }}, this.value)" style="padding: 0.2rem; font-size: 0.75rem; font-weight: 700; height: 26px; width: 100%; border: none; background: transparent; outline: none; color: var(--text-primary); cursor: pointer;">
                                                 <option value="active" {{ $ps->career_status === 'active' ? 'selected' : '' }}>Aktif</option>
                                                 <option value="passed" {{ $ps->career_status === 'passed' ? 'selected' : '' }}>Lulus</option>
                                                 <option value="failed" {{ $ps->career_status === 'failed' ? 'selected' : '' }}>Gugur</option>

@@ -513,19 +513,19 @@
                     <h3 class="panel-title"><i class="fa-solid fa-plus"></i> Tambah Divisi Penempatan</h3>
                     <form method="POST" action="{{ route('super-admin.career.placements.store') }}" style="display: flex; flex-direction: column; gap: 1.25rem;">
                         @csrf
-                        <div class="input-group">
-                            <label>Nama Divisi / Project</label>
-                            <div class="input-wrapper">
-                                <input type="text" name="name" required placeholder="Misal: Divisi Web Development / SIAPIT Project">
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Nama Divisi / Project</label>
+                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                <input type="text" name="name" required placeholder="Misal: Divisi Web Development / SIAPIT Project" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                             </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                            <div class="input-group" style="position: relative; overflow: visible;">
-                                <label>Penanggung Jawab (PJ)</label>
-                                <div class="input-wrapper" style="position: relative;">
+                            <div style="position: relative; overflow: visible; display: flex; flex-direction: column; gap: 0.5rem;">
+                                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Penanggung Jawab (PJ)</label>
+                                <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem; position: relative;">
                                     <input type="hidden" name="mentor_name" id="form-mentor-name">
-                                    <input type="text" id="mentor-search" placeholder="Cari PJ Pengajar..." autocomplete="off" onfocus="showMentorDropdown()" oninput="filterMentorDropdown()">
+                                    <input type="text" id="mentor-search" placeholder="Cari PJ Pengajar..." autocomplete="off" onfocus="showMentorDropdown()" oninput="filterMentorDropdown()" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                     <div id="mentor-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); border-radius: 10px; max-height: 180px; overflow-y: auto; z-index: 1000; padding: 0.5rem 0;">
                                         @foreach($teachers as $t)
                                             <div class="dropdown-item" data-value="{{ $t->name }}" data-contact="{{ $t->whatsapp }}" data-search="{{ strtolower($t->name) }}" style="padding: 0.5rem 1rem; cursor: pointer; font-weight: 600; color: var(--text-primary);" onclick="selectMentor('{{ $t->name }}', '{{ $t->whatsapp }}')">{{ $t->name }}</div>
@@ -533,18 +533,18 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="input-group">
-                                <label>No. WhatsApp Kontak</label>
-                                <div class="input-wrapper">
-                                    <input type="text" name="mentor_contact" id="form-mentor-contact" readonly placeholder="Terisi otomatis" style="background: rgba(0,0,0,0.02); cursor: not-allowed;">
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">No. WhatsApp Kontak</label>
+                                <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                    <input type="text" name="mentor_contact" id="form-mentor-contact" readonly placeholder="Terisi otomatis" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%; cursor: not-allowed; opacity: 0.7;">
                                 </div>
                             </div>
                         </div>
 
-                        <div class="input-group">
-                            <label>Deskripsi Divisi</label>
-                            <div class="input-wrapper">
-                                <textarea name="description" rows="2" placeholder="Tulis rincian tugas atau info divisi..."></textarea>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Deskripsi Divisi</label>
+                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                <textarea name="description" rows="2" placeholder="Tulis rincian tugas atau info divisi..." style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%; resize: vertical;"></textarea>
                             </div>
                         </div>
 
@@ -622,10 +622,10 @@
                     </div>
 
                     @if($waitingStudents->count() > 0)
-                        <div class="input-group" style="margin-bottom: 1rem;">
-                            <label>Tujuan Divisi Penempatan</label>
-                            <div class="input-wrapper">
-                                <select name="career_placement_id" required>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+                            <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Tujuan Divisi Penempatan</label>
+                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                <select name="career_placement_id" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                     <option value="">-- Pilih Divisi --</option>
                                     @foreach($placements as $pl)
                                         <option value="{{ $pl->id }}">{{ $pl->name }}</option>

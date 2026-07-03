@@ -237,52 +237,52 @@
                 <!-- Nama -->
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label for="tch-name" style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Nama Lengkap</label>
-                    <div class="input-wrapper">
-                        <input type="text" name="name" id="tch-name" required placeholder="Nama Lengkap Ustadz/Mentor">
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <input type="text" name="name" id="tch-name" required placeholder="Nama Lengkap Ustadz/Mentor" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                     </div>
                 </div>
 
                 <!-- Username (NIP) -->
                 <div id="username-container" style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label for="tch-username" style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Username / No. Induk <span style="font-weight: 500; font-size: 0.75rem; color: var(--text-secondary);">(Otomatis/Read-Only)</span></label>
-                    <div class="input-wrapper" style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); opacity: 0.8;">
-                        <input type="text" id="tch-username" readonly style="cursor: not-allowed; font-weight: 700; color: var(--accent-blue);">
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem; opacity: 0.8;">
+                        <input type="text" id="tch-username" readonly style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--accent-blue); width: 100%; cursor: not-allowed;">
                     </div>
                 </div>
 
                 <!-- Email -->
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label for="tch-email" style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Email</label>
-                    <div class="input-wrapper">
-                        <input type="email" name="email" id="tch-email" required placeholder="Contoh: ahmad@pondokit.com">
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <input type="email" name="email" id="tch-email" required placeholder="Contoh: ahmad@pondokit.com" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                     </div>
                 </div>
 
                 <!-- WhatsApp -->
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label for="tch-whatsapp" style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">No. WhatsApp</label>
-                    <div class="input-wrapper" style="display: flex; align-items: center; gap: 0.5rem; padding-left: 1.25rem;">
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem; display: flex; align-items: center; gap: 0.5rem; padding-left: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 0.35rem; font-weight: 700; color: var(--text-secondary); font-size: 0.9rem; border-right: 1.5px solid #d1d9e6; padding-right: 0.75rem; height: 100%; user-select: none;">
                             <span style="font-size: 1.1rem; line-height: 1;">🇮🇩</span>
                             <span>+62</span>
                         </div>
-                        <input type="text" name="whatsapp" id="tch-whatsapp" required placeholder="81234567890" style="box-shadow: none; background: transparent; padding-left: 0.25rem; width: 100%; border: none;">
+                        <input type="text" name="whatsapp" id="tch-whatsapp" required placeholder="81234567890" style="background: transparent; padding-left: 0.25rem; width: 100%; border: none; outline: none; font-weight: 700; color: var(--text-primary); font-size: 0.85rem;">
                     </div>
                 </div>
 
                 <!-- Role Mentor / Tipe Pengajar -->
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label for="tch-type" style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Role Mentor / Tipe</label>
-                    <div class="input-wrapper">
-                        <input type="text" name="teacher_type" id="tch-type" required placeholder="Contoh: Ustadz, Mentor Karakter, Mentor IT">
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <input type="text" name="teacher_type" id="tch-type" required placeholder="Contoh: Ustadz, Mentor Karakter, Mentor IT" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                     </div>
                 </div>
 
                 <!-- Password -->
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label for="tch-password" style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Password <span id="pwd-help" style="font-weight: 500; font-size: 0.75rem; color: var(--accent-blue); display: none;">(Kosongkan jika tidak diubah)</span></label>
-                    <div class="input-wrapper" style="position: relative; display: flex; align-items: center;">
-                        <input type="password" name="password" id="tch-password" placeholder="Minimal 6 karakter" style="width: 100%; padding-right: 3.5rem;">
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem; position: relative; display: flex; align-items: center;">
+                        <input type="password" name="password" id="tch-password" placeholder="Minimal 6 karakter" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%; padding-right: 3.5rem;">
                         <button type="button" id="toggle-pwd-btn" style="position: absolute; right: 1rem; background: none; border: none; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; z-index: 5;">
                             <i class="fa-solid fa-eye" id="pwd-eye-icon"></i>
                         </button>

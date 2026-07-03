@@ -102,12 +102,11 @@
             </header>
 
             <div class="dashboard-panel">
-                <!-- Filter Row -->
-                <form method="GET" action="{{ route('pengajar.career.logbook') }}" class="filter-row">
-                    <div class="input-group" style="width: 250px;">
-                        <label>Pilih Divisi Asuhan</label>
-                        <div class="input-wrapper">
-                            <select name="career_placement_id" onchange="this.form.submit()" style="width: 100%;">
+                <form method="GET" action="{{ route('pengajar.career.logbook') }}" style="display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 2rem; padding: 1.5rem; border-radius: 20px; box-shadow: var(--nm-flat); border: 1.5px solid rgba(255,255,255,0.4); background: var(--bg-primary);">
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 250px;">
+                        <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Pilih Divisi Asuhan</label>
+                        <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                            <select name="career_placement_id" onchange="this.form.submit()" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                 @foreach($placements as $pl)
                                     <option value="{{ $pl->id }}" {{ $selectedPlacementId == $pl->id ? 'selected' : '' }}>{{ $pl->name }}</option>
                                 @endforeach

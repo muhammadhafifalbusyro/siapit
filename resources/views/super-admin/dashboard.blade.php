@@ -225,7 +225,8 @@
             flex-wrap: wrap;
             align-items: flex-end;
             background: var(--bg-primary);
-            box-shadow: var(--nm-flat-md);
+            box-shadow: var(--nm-flat);
+            border: 1.5px solid rgba(255,255,255,0.4);
             padding: 1.5rem;
             border-radius: 20px;
         }
@@ -246,7 +247,7 @@
             background: var(--bg-primary);
             box-shadow: var(--nm-inset-sm);
             border-radius: 10px;
-            padding: 0.25rem 0.5rem;
+            padding: 0.15rem 0.25rem;
         }
 
         .input-wrapper select {
@@ -255,7 +256,7 @@
             outline: none;
             padding: 0.5rem;
             font-size: 0.85rem;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-primary);
             width: 180px;
         }
@@ -500,11 +501,11 @@
         </header>
 
         <!-- Filters Row -->
-        <form method="GET" action="{{ route('super-admin.dashboard') }}" class="filter-row">
-            <div class="input-group">
-                <label>Program Pendidikan</label>
-                <div class="input-wrapper">
-                    <select name="education_program_id" onchange="this.form.submit()">
+        <form method="GET" action="{{ route('super-admin.dashboard') }}" style="display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 2.5rem; padding: 1.5rem; border-radius: 20px; box-shadow: var(--nm-flat); border: 1.5px solid rgba(255,255,255,0.4); background: var(--bg-primary);">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Program Pendidikan</label>
+                <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                    <select name="education_program_id" onchange="this.form.submit()" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 180px;">
                         <option value="all">Semua Program</option>
                         @foreach($programs as $p)
                             <option value="{{ $p->id }}" {{ $selectedProgramId == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
@@ -513,10 +514,10 @@
                 </div>
             </div>
 
-            <div class="input-group">
-                <label>Tahun Ajaran</label>
-                <div class="input-wrapper">
-                    <select name="academic_year_id" onchange="this.form.submit()">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Tahun Ajaran</label>
+                <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                    <select name="academic_year_id" onchange="this.form.submit()" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 180px;">
                         <option value="all">Semua Tahun</option>
                         @foreach($academicYears as $ay)
                             <option value="{{ $ay->id }}" {{ $selectedAcademicYearId == $ay->id ? 'selected' : '' }}>{{ $ay->name }}</option>
@@ -525,10 +526,10 @@
                 </div>
             </div>
 
-            <div class="input-group">
-                <label>Gelombang / Batch</label>
-                <div class="input-wrapper">
-                    <select name="batch_id" onchange="this.form.submit()">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Gelombang / Batch</label>
+                <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                    <select name="batch_id" onchange="this.form.submit()" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 180px;">
                         <option value="all">Semua Batch</option>
                         @foreach($batches as $b)
                             <option value="{{ $b->id }}" {{ $selectedBatchId == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>

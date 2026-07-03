@@ -214,15 +214,15 @@
                 
                 <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; text-align: left;">
                     <label for="form-name" style="font-size: 0.85rem; font-weight: 700; padding-left: 0.25rem;">Nama Jurusan</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="form-name" required placeholder="Contoh: Mobile Developer">
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <input type="text" id="form-name" required placeholder="Contoh: Mobile Developer" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                     </div>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; text-align: left;">
                     <label for="form-program" style="font-size: 0.85rem; font-weight: 700; padding-left: 0.25rem;">Program Pendidikan</label>
-                    <div class="input-wrapper">
-                        <select id="form-program" required>
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <select id="form-program" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                             <option value="" disabled selected>Pilih Program...</option>
                             @foreach($programs as $program)
                                 <option value="{{ $program->id }}">{{ $program->name }} ({{ $program->duration_years }} Tahun)</option>

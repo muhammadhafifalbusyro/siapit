@@ -217,8 +217,8 @@
                             
                             <div class="form-group">
                                 <label>Pilih Kategori Tagihan</label>
-                                <div class="input-wrapper">
-                                    <select name="billing_category_id" required>
+                                <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                    <select name="billing_category_id" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                         @foreach($bills as $bill)
                                             <option value="{{ $bill->billingCategory->id }}">
                                                 {{ $bill->billingCategory->name }} (Rp {{ number_format($bill->billingCategory->total_amount, 0, ',', '.') }})
@@ -233,15 +233,15 @@
 
                             <div class="form-group">
                                 <label>Nominal Pembayaran</label>
-                                <div class="input-wrapper">
-                                    <input type="text" name="amount" placeholder="Rp 1.500.000" id="payment-amount" required>
+                                <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                    <input type="text" name="amount" placeholder="Rp 1.500.000" id="payment-amount" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                 </div>
                             </div>
 
                             <div class="form-group">
                                 <label>Upload Foto Bukti Transfer</label>
-                                <div class="input-wrapper">
-                                    <input type="file" name="proof_image" accept="image/*" required>
+                                <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                    <input type="file" name="proof_image" accept="image/*" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; width: 100%;">
                                 </div>
                             </div>
 

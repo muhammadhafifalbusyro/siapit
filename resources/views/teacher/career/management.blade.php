@@ -7,31 +7,13 @@
     <title>Manajemen Karya {{ $student->registration->name }} - Mentor SIAPIT</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    @vite(['resources/css/dashboard.css', 'resources/js/app.js'])
     <style>
-        :root {
-            --bg-primary: #e0e8f6;
-            --bg-secondary: #f0f4f9;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --accent-blue: #3b82f6;
-            --accent-red: #ef4444;
-            --accent-green: #10b981;
-            --font-main: 'Outfit', sans-serif;
-            
-            /* Neomorphism Shadows */
-            --nm-flat-sm: 4px 4px 8px #beccd7, -4px -4px 8px #ffffff;
-            --nm-flat-md: 8px 8px 16px #beccd7, -8px -8px 16px #ffffff;
-            --nm-inset-sm: inset 4px 4px 8px #beccd7, inset -4px -4px 8px #ffffff;
-            --nm-flat-hover: 5px 5px 10px #beccd7, -5px -5px 10px #ffffff;
-            
-            --transition: all 0.3s ease;
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: var(--font-main);
+            font-family: var(--font-body);
         }
 
         body {
@@ -45,7 +27,8 @@
         .sidebar {
             width: 280px;
             background: var(--bg-primary);
-            box-shadow: var(--nm-flat-md);
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.03), 10px 0 30px rgba(0, 0, 0, 0.05);
+            border-right: 1.5px solid rgba(255,255,255,0.4);
             border-radius: 0 30px 30px 0;
             padding: 2rem 1.5rem;
             display: flex;
@@ -688,10 +671,10 @@
                                                 <input type="checkbox" name="score" value="1" id="approve_sub_{{ $sub->id }}" {{ $sub->score == 1 ? 'checked' : '' }} style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-blue);">
                                                 <label for="approve_sub_{{ $sub->id }}" style="cursor: pointer; margin-bottom: 0; font-size: 0.8rem; font-weight: 800;">Approved</label>
                                             </div>
-                                            <div class="input-group" style="margin-bottom: 0;">
-                                                <label>Feedback</label>
-                                                <div class="input-wrapper" style="padding: 0.1rem 0.25rem;">
-                                                    <input type="text" name="notes" value="{{ $sub->notes }}" placeholder="Tulis catatan..." style="padding: 0.25rem; font-size: 0.8rem; font-weight: 700;">
+                                            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0;">
+                                                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Feedback</label>
+                                                <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 8px; padding: 0.15rem 0.25rem;">
+                                                    <input type="text" name="notes" value="{{ $sub->notes }}" placeholder="Tulis catatan..." style="border: none; background: transparent; outline: none; padding: 0.25rem; font-size: 0.8rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                                 </div>
                                             </div>
                                             <div>
@@ -739,14 +722,14 @@
                                     <input type="hidden" name="_method" id="form-method" value="POST">
 
                                     @foreach($activeContext->fields as $f)
-                                        <div class="input-group">
-                                            <label>{{ $f->label }}</label>
-                                            <div class="input-wrapper">
+                                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                            <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">{{ $f->label }}</label>
+                                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
                                                 @if($f->type === 'multiple_images')
-                                                    <input type="file" name="field_{{ $f->id }}[]" multiple accept="image/*" id="input_field_{{ $f->id }}">
+                                                    <input type="file" name="field_{{ $f->id }}[]" multiple accept="image/*" id="input_field_{{ $f->id }}" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; width: 100%;">
                                                     <div style="font-size: 0.7rem; color: var(--text-secondary); padding: 0.25rem 0.5rem; font-weight: 700;"><i class="fa-solid fa-circle-info"></i> Anda dapat memilih beberapa file gambar sekaligus.</div>
                                                 @else
-                                                    <input type="text" name="field_{{ $f->id }}" id="input_field_{{ $f->id }}" placeholder="{{ $f->placeholder }}" required>
+                                                    <input type="text" name="field_{{ $f->id }}" id="input_field_{{ $f->id }}" placeholder="{{ $f->placeholder }}" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                                 @endif
                                             </div>
                                         </div>
@@ -759,10 +742,10 @@
                                             <input type="checkbox" name="score" value="1" id="input_score" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-blue);">
                                             <label for="input_score" style="cursor: pointer; margin-bottom: 0; font-size: 0.8rem; font-weight: 800;">Approved</label>
                                         </div>
-                                        <div class="input-group">
-                                            <label>Catatan Feedback</label>
-                                            <div class="input-wrapper">
-                                                <input type="text" name="notes" id="input_notes" placeholder="Opsional">
+                                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                            <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Catatan Feedback</label>
+                                            <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                                <input type="text" name="notes" id="input_notes" placeholder="Opsional" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                             </div>
                                         </div>
                                     </div>
@@ -954,7 +937,14 @@
                 maximumFractionDigits: 0
             }).format(number).replace('IDR', 'Rp').trim();
         }
-    </style>
+        // Sidebar Submenu Toggle
+        document.querySelectorAll('.submenu-trigger').forEach(trigger => {
+            trigger.addEventListener('click', () => {
+                const parent = trigger.parentElement;
+                parent.classList.toggle('open');
+            });
+        });
+    </script>
     <style>
         /* CSS Pagination details alignment */
         .pagination-btn {

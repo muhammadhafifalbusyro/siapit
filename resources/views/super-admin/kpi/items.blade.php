@@ -173,10 +173,10 @@
                             @csrf
                             <input type="hidden" name="_method" id="jobdesc-form-method" value="POST">
                             
-                            <div class="input-group">
-                                <label>Nama Kategori Job Description</label>
-                                <div class="input-wrapper">
-                                    <input type="text" name="name" id="jobdesc-name" required placeholder="Contoh: Pengajar Divisi Backend / Piket Harian">
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Nama Kategori Job Description</label>
+                                <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                    <input type="text" name="name" id="jobdesc-name" required placeholder="Contoh: Pengajar Divisi Backend / Piket Harian" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                 </div>
                             </div>
                             
@@ -198,10 +198,10 @@
                             @csrf
                             <input type="hidden" name="_method" id="item-form-method" value="POST">
                             
-                            <div class="input-group">
-                                <label>Pilih Kategori Job Description (Parent)</label>
-                                <div class="select-wrapper" style="width: 100%; height: 42px;">
-                                    <select id="item-jobdesc-id" name="teacher_kpi_jobdesc_id" required style="width: 100%; border: none; background: transparent; outline: none; font-weight: 700; color: var(--text-primary); padding: 0 1rem; height: 100%;">
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Pilih Kategori Job Description (Parent)</label>
+                                <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                    <select id="item-jobdesc-id" name="teacher_kpi_jobdesc_id" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                         <option value="">- Pilih Kategori Jobdesc -</option>
                                         @foreach($jobdescs as $jd)
                                             <option value="{{ $jd->id }}">{{ $jd->name }}</option>
@@ -210,17 +210,17 @@
                                 </div>
                             </div>
 
-                            <div class="input-group">
-                                <label>Nama Poin KPI / Target Kegiatan</label>
-                                <div class="input-wrapper">
-                                    <input type="text" name="name" id="item-name" required placeholder="Contoh: Mengisi Jurnal Harian Santri">
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Nama Poin KPI / Target Kegiatan</label>
+                                <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                    <input type="text" name="name" id="item-name" required placeholder="Contoh: Mengisi Jurnal Harian Santri" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                 </div>
                             </div>
                             
-                            <div class="input-group">
-                                <label>Bobot Penilaian (%)</label>
-                                <div class="input-wrapper">
-                                    <input type="number" name="weight" id="item-weight" required min="1" max="100" placeholder="1 s/d 100">
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Bobot Penilaian (%)</label>
+                                <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                                    <input type="number" name="weight" id="item-weight" required min="1" max="100" placeholder="1 s/d 100" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                                 </div>
                             </div>
                             

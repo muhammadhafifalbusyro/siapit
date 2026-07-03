@@ -291,8 +291,8 @@
                 
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label for="year-name" style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Nama Tahun Ajaran</label>
-                    <div class="input-wrapper">
-                        <input type="text" name="name" id="year-name" required placeholder="Contoh: 2026/2027">
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <input type="text" name="name" id="year-name" required placeholder="Contoh: 2026/2027" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                     </div>
                 </div>
 
@@ -320,15 +320,15 @@
                 
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label for="batch-name" style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Nama Gelombang / Batch</label>
-                    <div class="input-wrapper">
-                        <input type="text" name="name" id="batch-name" required placeholder="Contoh: Gelombang 1">
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <input type="text" name="name" id="batch-name" required placeholder="Contoh: Gelombang 1" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                     </div>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label for="batch-year-id" style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Tahun Ajaran</label>
-                    <div class="input-wrapper" style="padding: 0; overflow: hidden;">
-                        <select name="academic_year_id" id="batch-year-id" required style="width: 100%; height: 48px; border: none; background: transparent; outline: none; padding: 0 1.25rem; font-family: var(--font-body); color: var(--text-primary); font-weight: 700;">
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <select name="academic_year_id" id="batch-year-id" required style="width: 100%; border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">
                             <option value="" disabled selected>Pilih Tahun Ajaran...</option>
                             @foreach($academicYears as $y)
                                 <option value="{{ $y->id }}">{{ $y->name }}</option>

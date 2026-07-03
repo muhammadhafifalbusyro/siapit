@@ -575,24 +575,24 @@
                     @csrf
                     <input type="hidden" name="_method" id="form-method" value="POST">
                     
-                    <div class="input-group">
-                        <label>Nama Kategori</label>
-                        <div class="input-wrapper">
-                            <input type="text" name="name" id="input_name" placeholder="Misal: SPP Juli 2026, Uang Pangkal" required>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Nama Kategori</label>
+                        <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                            <input type="text" name="name" id="input_name" placeholder="Misal: SPP Juli 2026, Uang Pangkal" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                         </div>
                     </div>
 
-                    <div class="input-group">
-                        <label>Total Nominal Tagihan (Rp)</label>
-                        <div class="input-wrapper">
-                            <input type="text" name="total_amount" id="input_total" placeholder="Masukkan total uang tagihan" required>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Total Nominal Tagihan (Rp)</label>
+                        <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                            <input type="text" name="total_amount" id="input_total" placeholder="Masukkan total uang tagihan" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                         </div>
                     </div>
 
-                    <div class="input-group">
-                        <label>Jumlah Termin Angsuran (Kali)</label>
-                        <div class="input-wrapper">
-                            <input type="number" name="installment_count" id="input_installments" min="1" placeholder="Misal: 3 atau 6 kali" required>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">Jumlah Termin Angsuran (Kali)</label>
+                        <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                            <input type="number" name="installment_count" id="input_installments" min="1" placeholder="Misal: 3 atau 6 kali" required style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                         </div>
                     </div>
 

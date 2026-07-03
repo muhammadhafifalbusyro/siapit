@@ -210,22 +210,22 @@
                 
                 <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; text-align: left;">
                     <label for="form-name" style="font-size: 0.85rem; font-weight: 700; padding-left: 0.25rem;">Nama Program</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="form-name" required placeholder="Contoh: Mobile Developer">
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <input type="text" id="form-name" required placeholder="Contoh: Mobile Developer" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                     </div>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; text-align: left;">
                     <label for="form-desc" style="font-size: 0.85rem; font-weight: 700; padding-left: 0.25rem;">Deskripsi</label>
-                    <div class="input-wrapper">
-                        <textarea id="form-desc" placeholder="Tuliskan deskripsi singkat program..." style="width: 100%; min-height: 100px; padding: 0.9rem 1.25rem; border-radius: 12px; border: none; background: var(--bg-primary); box-shadow: var(--nm-inset-sm); color: var(--text-primary); font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; outline: none; transition: var(--transition); resize: vertical;"></textarea>
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <textarea id="form-desc" placeholder="Tuliskan deskripsi singkat program..." style="width: 100%; min-height: 100px; padding: 0.9rem 1.25rem; border-radius: 12px; border: none; background: transparent; color: var(--text-primary); font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; outline: none; transition: var(--transition); resize: vertical;"></textarea>
                     </div>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; text-align: left;">
                     <label for="form-duration" style="font-size: 0.85rem; font-weight: 700; padding-left: 0.25rem;">Durasi Pendidikan (Tahun)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="form-duration" required min="1" max="10" placeholder="3">
+                    <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); border-radius: 10px; padding: 0.15rem 0.25rem;">
+                        <input type="number" id="form-duration" required min="1" max="10" placeholder="3" style="border: none; background: transparent; outline: none; padding: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); width: 100%;">
                     </div>
                 </div>
 
