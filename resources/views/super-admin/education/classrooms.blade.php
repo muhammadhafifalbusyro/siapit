@@ -217,6 +217,9 @@
                                         <button onclick="openAssignTeachersModal({{ $cls->id }}, '{{ $cls->homeroom_teacher_id }}', {{ $assistantIds }})" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); padding: 0 0.75rem; height: 32px; border-radius: 8px; font-weight: 800; font-size: 0.75rem; color: var(--accent-blue); cursor: pointer; display: flex; align-items: center; gap: 0.25rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" title="Atur Pembimbing">
                                             <i class="fa-solid fa-user-tie"></i> Atur Wali
                                         </button>
+                                        <button onclick="openAssignSkillModal({{ $cls->id }}, '{{ $cls->education_skill_id }}')" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); padding: 0 0.75rem; height: 32px; border-radius: 8px; font-weight: 800; font-size: 0.75rem; color: var(--accent-green, #10b981); cursor: pointer; display: flex; align-items: center; gap: 0.25rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" title="Pilih Skill">
+                                            <i class="fa-solid fa-brain"></i> Pilih Skill
+                                        </button>
                                         <button data-id="{{ $cls->id }}" data-name="{{ $cls->name }}" data-leader="{{ $cls->leader_registration_id }}" data-students="{{ json_encode($classStudents->map(fn($s) => ['id' => $s->id, 'reg_id' => $s->registration->id, 'name' => $s->registration->name, 'status' => $s->status])->values()) }}" onclick="openClassroomStudentsModalFromButton(this)" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); padding: 0 0.75rem; height: 32px; border-radius: 8px; font-weight: 800; font-size: 0.75rem; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; gap: 0.25rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
                                             <i class="fa-solid fa-users"></i> Anggota
                                         </button>
@@ -243,6 +246,10 @@
                                     <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                         <span style="font-weight: 700; color: var(--text-secondary);">Ketua Kelas:</span>
                                         <span style="font-weight: 800; color: var(--accent-blue);">{{ $cls->leaderRegistration->name ?? '-' }}</span>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                        <span style="font-weight: 700; color: var(--text-secondary);">Skill Penilaian:</span>
+                                        <span style="font-weight: 800; color: var(--accent-green, #10b981);">{{ $cls->educationSkill->name ?? '-' }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -534,6 +541,53 @@
         function closeClassroomStudentsModal() {
             studentsOverlay.style.display = 'none';
         }
+
+        // Skill Modal
+        function openAssignSkillModal(classId, selectedSkillId) {
+            const skillOverlay = document.getElementById('skill-modal-overlay');
+            const assignSkillForm = document.getElementById('assign-skill-form');
+            const skillSelect = document.getElementById('skill-select');
+
+            if (assignSkillForm) assignSkillForm.action = `/super-admin/education/classrooms/${classId}/assign-skill`;
+            if (skillSelect) skillSelect.value = selectedSkillId || '';
+            if (skillOverlay) skillOverlay.style.display = 'flex';
+        }
+
+        function closeAssignSkillModal() {
+            const skillOverlay = document.getElementById('skill-modal-overlay');
+            if (skillOverlay) skillOverlay.style.display = 'none';
+        }
     </script>
+
+    <!-- MODAL ASSIGN SKILL -->
+    <div id="skill-modal-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.15); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 1.5rem;">
+        <div class="card-nm" style="width: 100%; max-width: 480px; padding: 2rem; position: relative;">
+            <button style="position: absolute; top: 1rem; right: 1rem; border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center;" onclick="closeAssignSkillModal()" type="button"><i class="fa-solid fa-xmark"></i></button>
+            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; margin-bottom: 1.5rem;"><i class="fa-solid fa-brain" style="color: var(--accent-green);"></i> Pilih Skill Penilaian Kelas</h3>
+            <form id="assign-skill-form" method="POST" style="display: flex; flex-direction: column; gap: 1.25rem; text-align: left;">
+                @csrf
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Pilih Skill Utama</label>
+                    <div class="select-wrapper">
+                        <select name="education_skill_id" id="skill-select" style="width: 100%; border: none; background: transparent; outline: none; font-weight: 600; color: var(--text-primary); padding: 0 1rem; height: 100%;">
+                            <option value="">- Belum Ditentukan / Tidak Ada -</option>
+                            @if($activePeriod && $activePeriod->skills)
+                                @foreach($activePeriod->skills as $skill)
+                                    <option value="{{ $skill->id }}">{{ $skill->name }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                    <button type="button" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--text-secondary); display: inline-flex; align-items: center; justify-content: center; height: 38px; border-radius: 10px; padding: 0 1.5rem; font-weight: 700; cursor: pointer;" onclick="closeAssignSkillModal()">Batal</button>
+                    <button type="submit" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--accent-green); display: inline-flex; align-items: center; justify-content: center; height: 38px; border-radius: 10px; padding: 0 1.5rem; font-weight: 800; cursor: pointer; gap: 0.4rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'" onmousedown="this.style.boxShadow='var(--nm-inset-sm)'" onmouseup="this.style.boxShadow='var(--nm-flat-hover)'">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

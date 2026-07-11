@@ -86,6 +86,7 @@ Route::middleware(['auth'])->group(function () {
         
         Route::get('/matriculation/classrooms', [DashboardController::class, 'matriculationClassrooms'])->name('super-admin.matriculation.classrooms');
         Route::post('/matriculation/classrooms/{id}/assign-teachers', [DashboardController::class, 'matriculationAssignTeachers'])->name('super-admin.matriculation.classrooms.assign-teachers');
+        Route::post('/matriculation/classrooms/{id}/assign-skill', [DashboardController::class, 'matriculationAssignSkill'])->name('super-admin.matriculation.classrooms.assign-skill');
         Route::post('/matriculation/classrooms/assign-students', [DashboardController::class, 'matriculationAssignStudents'])->name('super-admin.matriculation.classrooms.assign-students');
         Route::post('/matriculation/classrooms/set-leader', [DashboardController::class, 'matriculationSetLeader'])->name('super-admin.matriculation.classrooms.set-leader');
         Route::delete('/matriculation/classrooms/remove-student/{id}', [DashboardController::class, 'matriculationRemoveStudent'])->name('super-admin.matriculation.classrooms.remove-student');
@@ -103,6 +104,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/education/classrooms', [DashboardController::class, 'educationClassrooms'])->name('super-admin.education.classrooms');
         Route::post('/education/classrooms/{id}/assign-teachers', [DashboardController::class, 'educationAssignTeachers'])->name('super-admin.education.classrooms.assign-teachers');
+        Route::post('/education/classrooms/{id}/assign-skill', [DashboardController::class, 'educationAssignSkill'])->name('super-admin.education.classrooms.assign-skill');
         Route::post('/education/classrooms/assign-students', [DashboardController::class, 'educationAssignStudents'])->name('super-admin.education.classrooms.assign-students');
         Route::post('/education/classrooms/set-leader', [DashboardController::class, 'educationSetLeader'])->name('super-admin.education.classrooms.set-leader');
         Route::delete('/education/classrooms/remove-student/{id}', [DashboardController::class, 'educationRemoveStudent'])->name('super-admin.education.classrooms.remove-student');

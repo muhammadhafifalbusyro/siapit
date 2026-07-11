@@ -33,6 +33,11 @@ class MatriculationPeriod extends Model
         return $this->hasMany(MatriculationAspect::class);
     }
 
+    public function skills()
+    {
+        return $this->hasMany(MatriculationSkill::class);
+    }
+
     public function students()
     {
         return $this->hasMany(MatriculationStudent::class);

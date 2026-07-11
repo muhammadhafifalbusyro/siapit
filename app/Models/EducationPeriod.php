@@ -37,4 +37,9 @@ class EducationPeriod extends Model
     {
         return $this->hasMany(EducationStudent::class);
     }
+
+    public function skills()
+    {
+        return $this->hasMany(EducationSkill::class);
+    }
 }

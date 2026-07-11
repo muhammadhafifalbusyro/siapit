@@ -11,6 +11,7 @@ class MatriculationAspect extends Model
 
     protected $fillable = [
         'matriculation_period_id',
+        'matriculation_skill_id',
         'name',
         'weight_percentage',
         'type',
@@ -27,6 +28,11 @@ class MatriculationAspect extends Model
     public function period()
     {
         return $this->belongsTo(MatriculationPeriod::class, 'matriculation_period_id');
+    }
+
+    public function skill()
+    {
+        return $this->belongsTo(MatriculationSkill::class, 'matriculation_skill_id');
     }
 
     public function scores()

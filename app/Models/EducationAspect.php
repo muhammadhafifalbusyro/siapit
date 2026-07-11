@@ -11,6 +11,7 @@ class EducationAspect extends Model
 
     protected $fillable = [
         'education_period_id',
+        'education_skill_id',
         'name',
         'weight_percentage',
         'type',
@@ -27,6 +28,11 @@ class EducationAspect extends Model
     public function period()
     {
         return $this->belongsTo(EducationPeriod::class, 'education_period_id');
+    }
+
+    public function skill()
+    {
+        return $this->belongsTo(EducationSkill::class, 'education_skill_id');
     }
 
     public function scores()

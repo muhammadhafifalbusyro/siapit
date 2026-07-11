@@ -15,7 +15,19 @@ class Classroom extends Model
         'name',
         'homeroom_teacher_id',
         'leader_registration_id',
+        'matriculation_skill_id',
+        'education_skill_id',
     ];
+
+    public function matriculationSkill()
+    {
+        return $this->belongsTo(MatriculationSkill::class, 'matriculation_skill_id');
+    }
+
+    public function educationSkill()
+    {
+        return $this->belongsTo(EducationSkill::class, 'education_skill_id');
+    }
 
     public function academicYear()
     {

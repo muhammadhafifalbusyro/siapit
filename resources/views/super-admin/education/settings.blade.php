@@ -201,7 +201,7 @@
 
                     <!-- Periode & Tanggal -->
                     <div>
-                        <h3 class="panel-title"><i class="fa-solid fa-calendar-range"></i> Masa Pembelajaran Seleksi</h3>
+                        <h3 class="panel-title"><i class="fa-solid fa-calendar-range"></i> Masa Pendidikan Seleksi</h3>
                         <div style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
                             <div style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 0.5rem;">
                                 <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Tanggal Mulai</label>
@@ -223,7 +223,7 @@
                         <h3 class="panel-title"><i class="fa-solid fa-list-check"></i> Aspek Penilaian Pendidikan</h3>
                         <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem; font-weight: 600;">Definisikan kriteria untuk masing-masing kelompok penilaian. Total bobot kriteria dalam masing-masing kelompok wajib bernilai tepat 100%.</p>
 
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: flex-start; margin-bottom: 1.5rem;">
                             
                             <!-- Penilaian Karakter -->
                             <div class="card-nm" style="padding: 1.5rem;">
@@ -288,54 +288,99 @@
                                 </div>
                             </div>
 
-                            <!-- Penilaian Skill -->
-                            <div class="card-nm" style="padding: 1.5rem;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1.5px solid #d1d9e6; padding-bottom: 0.75rem;">
-                                    <h4 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin: 0;"><i class="fa-solid fa-brain" style="color: var(--accent-blue);"></i> Penilaian Skill</h4>
-                                    <button type="button" onclick="addAspectRow('skill')" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--accent-blue); display: inline-flex; align-items: center; justify-content: center; height: 30px; border-radius: 6px; padding: 0 0.75rem; font-weight: 800; font-size: 0.75rem; cursor: pointer; transition: var(--transition); gap: 0.25rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
-                                        <i class="fa-solid fa-plus"></i> Tambah
+                            <!-- Penilaian Skill Dinamis -->
+                            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <h4 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 0;"><i class="fa-solid fa-brain" style="color: var(--accent-blue);"></i> Penilaian Skill Dinamis</h4>
+                                    <button type="button" onclick="addSkillGroup()" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--accent-blue); display: inline-flex; align-items: center; justify-content: center; height: 34px; border-radius: 8px; padding: 0 1rem; font-weight: 800; font-size: 0.8rem; cursor: pointer; transition: var(--transition); gap: 0.3rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
+                                        <i class="fa-solid fa-plus"></i> Tambah Skill
                                     </button>
                                 </div>
 
-                                <div id="skill-aspects-container" style="display: flex; flex-direction: column; gap: 1rem;">
-                                    @php $skillIdx = 0; @endphp
-                                    @if(isset($period) && $period->aspects->where('type', 'skill')->count() > 0)
-                                        @foreach($period->aspects->where('type', 'skill') as $aspect)
-                                            <div class="aspect-row skill-row" style="display: flex; gap: 0.75rem; align-items: center; width: 100%;">
-                                                <input type="hidden" name="skill_aspects[{{ $skillIdx }}][id]" value="{{ $aspect->id }}">
-                                                <div class="input-wrapper" style="flex: 3; height: 38px;">
-                                                    <input type="text" name="skill_aspects[{{ $skillIdx }}][name]" required placeholder="Nama Kriteria (misal: Tugas Harian)" value="{{ $aspect->name }}" style="height: 100%;">
+                                <div id="skills-container" style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%;">
+                                    @php $skillGroupIdx = 0; @endphp
+                                    @if(isset($period) && $period->skills->count() > 0)
+                                        @foreach($period->skills as $skill)
+                                            <div class="card-nm skill-group" data-index="{{ $skillGroupIdx }}" style="padding: 1.5rem;">
+                                                <input type="hidden" name="skills[{{ $skillGroupIdx }}][id]" value="{{ $skill->id }}">
+                                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1.5px solid #d1d9e6; padding-bottom: 0.75rem; gap: 1rem;">
+                                                    <div class="input-wrapper" style="flex: 1; height: 38px;">
+                                                        <input type="text" name="skills[{{ $skillGroupIdx }}][name]" required placeholder="Nama Skill (misal: Pemrograman)" value="{{ $skill->name }}" style="height: 100%; font-weight: 800; padding: 0 1rem;">
+                                                    </div>
+                                                    <div style="display: flex; gap: 0.5rem;">
+                                                        <button type="button" onclick="addSkillAspectRow({{ $skillGroupIdx }})" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--accent-blue); display: inline-flex; align-items: center; justify-content: center; height: 32px; border-radius: 8px; padding: 0 0.75rem; font-weight: 800; font-size: 0.75rem; cursor: pointer; transition: var(--transition); gap: 0.25rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
+                                                            <i class="fa-solid fa-plus"></i> Aspek
+                                                        </button>
+                                                        <button type="button" onclick="removeSkillGroup(this)" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; color: var(--accent-red); display: flex; align-items: center; justify-content: center; transition: var(--transition);" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
+                                                            <i class="fa-solid fa-trash-can"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <div class="input-wrapper" style="flex: 1.2; display: flex; align-items: center; gap: 0.25rem; padding-right: 0.5rem; height: 38px; border-radius: 8px;">
-                                                    <input type="number" name="skill_aspects[{{ $skillIdx }}][weight]" min="1" max="100" required placeholder="Bobot" value="{{ $aspect->weight_percentage }}" style="box-shadow: none; border: none; background: transparent; width: 100%; text-align: center; font-weight: 700; height: 100%;">
-                                                    <span style="font-weight: 700; color: var(--text-secondary);">%</span>
+
+                                                <div class="skill-aspects-container" style="display: flex; flex-direction: column; gap: 1rem;">
+                                                    @php $skillAspectIdx = 0; @endphp
+                                                    @foreach($skill->aspects as $aspect)
+                                                        <div class="aspect-row skill-aspect-row" style="display: flex; gap: 0.75rem; align-items: center; width: 100%;">
+                                                            <input type="hidden" name="skills[{{ $skillGroupIdx }}][aspects][{{ $skillAspectIdx }}][id]" value="{{ $aspect->id }}">
+                                                            <div class="input-wrapper" style="flex: 3; height: 38px;">
+                                                                <input type="text" name="skills[{{ $skillGroupIdx }}][aspects][{{ $skillAspectIdx }}][name]" required placeholder="Nama Kriteria" value="{{ $aspect->name }}" style="height: 100%; padding: 0 1rem;">
+                                                            </div>
+                                                            <div class="input-wrapper" style="flex: 1.2; display: flex; align-items: center; gap: 0.25rem; padding-right: 0.5rem; height: 38px; border-radius: 8px;">
+                                                                <input type="number" name="skills[{{ $skillGroupIdx }}][aspects][{{ $skillAspectIdx }}][weight]" min="1" max="100" required placeholder="Bobot" value="{{ $aspect->weight_percentage }}" style="box-shadow: none; border: none; background: transparent; width: 100%; text-align: center; font-weight: 700; height: 100%;">
+                                                                <span style="font-weight: 700; color: var(--text-secondary);">%</span>
+                                                            </div>
+                                                            <button type="button" onclick="removeSkillAspectRow(this)" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; color: var(--accent-red); display: flex; align-items: center; justify-content: center; transition: var(--transition);" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
+                                                                <i class="fa-solid fa-trash" style="font-size: 0.8rem;"></i>
+                                                            </button>
+                                                        </div>
+                                                        @php $skillAspectIdx++; @endphp
+                                                    @endforeach
                                                 </div>
-                                                <button type="button" onclick="removeAspectRow(this, 'skill')" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; color: var(--accent-red); display: flex; align-items: center; justify-content: center; transition: var(--transition);" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
-                                                    <i class="fa-solid fa-trash" style="font-size: 0.8rem;"></i>
-                                                </button>
+
+                                                <div style="margin-top: 1.5rem; text-align: right; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); border-top: 1px dashed #d1d9e6; padding-top: 0.75rem;">
+                                                    Subtotal Bobot: <span class="skill-weight-total" style="color: var(--accent-blue);">100%</span>
+                                                </div>
                                             </div>
-                                            @php $skillIdx++; @endphp
+                                            @php $skillGroupIdx++; @endphp
                                         @endforeach
                                     @else
-                                        <!-- Default Skill aspects -->
-                                        <div class="aspect-row skill-row" style="display: flex; gap: 0.75rem; align-items: center; width: 100%;">
-                                            <div class="input-wrapper" style="flex: 3; height: 38px;">
-                                                <input type="text" name="skill_aspects[0][name]" required placeholder="Nama Kriteria" value="Tugas Harian" style="height: 100%;">
+                                        <!-- Default Skill Group -->
+                                        <div class="card-nm skill-group" data-index="0" style="padding: 1.5rem;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1.5px solid #d1d9e6; padding-bottom: 0.75rem; gap: 1rem;">
+                                                <div class="input-wrapper" style="flex: 1; height: 38px;">
+                                                    <input type="text" name="skills[0][name]" required placeholder="Nama Skill (misal: Pemrograman)" value="Pemrograman" style="height: 100%; font-weight: 800; padding: 0 1rem;">
+                                                </div>
+                                                <div style="display: flex; gap: 0.5rem;">
+                                                    <button type="button" onclick="addSkillAspectRow(0)" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--accent-blue); display: inline-flex; align-items: center; justify-content: center; height: 32px; border-radius: 8px; padding: 0 0.75rem; font-weight: 800; font-size: 0.75rem; cursor: pointer; transition: var(--transition); gap: 0.25rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
+                                                        <i class="fa-solid fa-plus"></i> Aspek
+                                                    </button>
+                                                    <button type="button" onclick="removeSkillGroup(this)" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; color: var(--accent-red); display: flex; align-items: center; justify-content: center; transition: var(--transition);" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
+                                                        <i class="fa-solid fa-trash-can"></i>
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div class="input-wrapper" style="flex: 1.2; display: flex; align-items: center; gap: 0.25rem; padding-right: 0.5rem; height: 38px; border-radius: 8px;">
-                                                <input type="number" name="skill_aspects[0][weight]" min="1" max="100" required placeholder="Bobot" value="100" style="box-shadow: none; border: none; background: transparent; width: 100%; text-align: center; font-weight: 700; height: 100%;">
-                                                <span style="font-weight: 700; color: var(--text-secondary);">%</span>
+
+                                            <div class="skill-aspects-container" style="display: flex; flex-direction: column; gap: 1rem;">
+                                                <div class="aspect-row skill-aspect-row" style="display: flex; gap: 0.75rem; align-items: center; width: 100%;">
+                                                    <div class="input-wrapper" style="flex: 3; height: 38px;">
+                                                        <input type="text" name="skills[0][aspects][0][name]" required placeholder="Nama Kriteria" value="Tugas Harian" style="height: 100%; padding: 0 1rem;">
+                                                    </div>
+                                                    <div class="input-wrapper" style="flex: 1.2; display: flex; align-items: center; gap: 0.25rem; padding-right: 0.5rem; height: 38px; border-radius: 8px;">
+                                                        <input type="number" name="skills[0][aspects][0][weight]" min="1" max="100" required placeholder="Bobot" value="100" style="box-shadow: none; border: none; background: transparent; width: 100%; text-align: center; font-weight: 700; height: 100%;">
+                                                        <span style="font-weight: 700; color: var(--text-secondary);">%</span>
+                                                    </div>
+                                                    <button type="button" onclick="removeSkillAspectRow(this)" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; color: var(--accent-red); display: flex; align-items: center; justify-content: center; transition: var(--transition);" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
+                                                        <i class="fa-solid fa-trash" style="font-size: 0.8rem;"></i>
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <button type="button" onclick="removeAspectRow(this, 'skill')" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; color: var(--accent-red); display: flex; align-items: center; justify-content: center; transition: var(--transition);" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
-                                                <i class="fa-solid fa-trash" style="font-size: 0.8rem;"></i>
-                                            </button>
+
+                                            <div style="margin-top: 1.5rem; text-align: right; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); border-top: 1px dashed #d1d9e6; padding-top: 0.75rem;">
+                                                Subtotal Bobot: <span class="skill-weight-total" style="color: var(--accent-blue);">100%</span>
+                                            </div>
                                         </div>
-                                        @php $skillIdx = 1; @endphp
+                                        @php $skillGroupIdx = 1; @endphp
                                     @endif
-                                </div>
-                                
-                                <div style="margin-top: 1.5rem; text-align: right; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); border-top: 1px dashed #d1d9e6; padding-top: 0.75rem;">
-                                    Subtotal Bobot Skill: <span id="skill-weight-total" style="color: var(--accent-blue);">100%</span>
                                 </div>
                             </div>
 
@@ -346,7 +391,7 @@
                     <!-- Info Formula Kelulusan -->
                     <div style="background: var(--bg-primary); box-shadow: var(--nm-inset-sm); padding: 1.25rem 1.5rem; border-radius: 12px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; font-weight: 600;">
                         <i class="fa-solid fa-calculator" style="color: var(--accent-blue); margin-right: 0.25rem;"></i> <strong>Formula Nilai Akhir Gabungan:</strong><br>
-                        Nilai Akhir = (Rata-rata Nilai Karakter Tertimbang &times; 50%) + (Rata-rata Nilai Skill Tertimbang &times; 50%). Masing-masing kelompok (Karakter & Skill) wajib bernilai akumulasi subtotal 100%.
+                        Nilai Akhir = (Rata-rata Nilai Karakter Tertimbang &times; 50%) + (Rata-rata Nilai Skill Tertimbang &times; 50%). Masing-masing kelompok (Karakter & Skill terpilih per kelas) wajib bernilai akumulasi subtotal 100%.
                     </div>
                     <!-- Save Status & Submit Button -->
                     <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem;">
@@ -370,7 +415,7 @@
                 });
             });
 
-            // Calculate weight initially
+            // Calculate weights initially
             calculateTotalWeight();
 
             // Bind listeners for dynamic weights
@@ -378,7 +423,8 @@
                 calculateTotalWeight();
                 checkAndAutoSave();
             });
-            document.getElementById('skill-aspects-container').addEventListener('input', () => {
+            
+            document.getElementById('skills-container').addEventListener('input', () => {
                 calculateTotalWeight();
                 checkAndAutoSave();
             });
@@ -389,38 +435,127 @@
         });
 
         let charCounter = {{ $charIdx }};
-        let skillCounter = {{ $skillIdx }};
+        let skillGroupCounter = {{ $skillGroupIdx }};
+        // Keeps track of aspect counters per skill group
+        let skillAspectCounters = {};
+
+        // Initialize aspect counters for preloaded skill groups
+        @if(isset($period) && $period->skills->count() > 0)
+            @foreach($period->skills as $idx => $skill)
+                skillAspectCounters[{{ $idx }}] = {{ $skill->aspects->count() }};
+            @endforeach
+        @else
+            skillAspectCounters[0] = 1;
+        @endif
 
         function addAspectRow(type) {
-            const container = document.getElementById(type + '-aspects-container');
+            if (type === 'character') {
+                const container = document.getElementById('character-aspects-container');
+                const row = document.createElement('div');
+                row.className = 'aspect-row character-row';
+                row.style.display = 'flex';
+                row.style.gap = '0.75rem';
+                row.style.alignItems = 'center';
+                row.style.width = '100%';
+
+                row.innerHTML = `
+                    <div class="input-wrapper" style="flex: 3; height: 38px;">
+                        <input type="text" name="character_aspects[${charCounter}][name]" required placeholder="Nama Kriteria" style="height: 100%;">
+                    </div>
+                    <div class="input-wrapper" style="flex: 1.2; display: flex; align-items: center; gap: 0.25rem; padding-right: 0.5rem; height: 38px; border-radius: 8px;">
+                        <input type="number" name="character_aspects[${charCounter}][weight]" min="1" max="100" required placeholder="Bobot" value="0" style="box-shadow: none; border: none; background: transparent; width: 100%; text-align: center; font-weight: 700; height: 100%;">
+                        <span style="font-weight: 700; color: var(--text-secondary);">%</span>
+                    </div>
+                    <button type="button" onclick="removeAspectRow(this, 'character')" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; color: var(--accent-red); display: flex; align-items: center; justify-content: center; transition: var(--transition);" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
+                        <i class="fa-solid fa-trash" style="font-size: 0.8rem;"></i>
+                    </button>
+                `;
+
+                container.appendChild(row);
+                charCounter++;
+                calculateTotalWeight();
+                checkAndAutoSave();
+            }
+        }
+
+        function addSkillGroup() {
+            const container = document.getElementById('skills-container');
+            const groupIdx = skillGroupCounter;
+            skillAspectCounters[groupIdx] = 1;
+
+            const group = document.createElement('div');
+            group.className = 'card-nm skill-group';
+            group.setAttribute('data-index', groupIdx);
+            group.style.padding = '1.5rem';
+
+            group.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1.5px solid #d1d9e6; padding-bottom: 0.75rem; gap: 1rem;">
+                    <div class="input-wrapper" style="flex: 1; height: 38px;">
+                        <input type="text" name="skills[${groupIdx}][name]" required placeholder="Nama Skill (misal: Pemrograman)" style="height: 100%; font-weight: 800; padding: 0 1rem;">
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button type="button" onclick="addSkillAspectRow(${groupIdx})" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); color: var(--accent-blue); display: inline-flex; align-items: center; justify-content: center; height: 32px; border-radius: 8px; padding: 0 0.75rem; font-weight: 800; font-size: 0.75rem; cursor: pointer; transition: var(--transition); gap: 0.25rem;" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
+                            <i class="fa-solid fa-plus"></i> Aspek
+                        </button>
+                        <button type="button" onclick="removeSkillGroup(this)" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; color: var(--accent-red); display: flex; align-items: center; justify-content: center; transition: var(--transition);" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="skill-aspects-container" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div class="aspect-row skill-aspect-row" style="display: flex; gap: 0.75rem; align-items: center; width: 100%;">
+                        <div class="input-wrapper" style="flex: 3; height: 38px;">
+                            <input type="text" name="skills[${groupIdx}][aspects][0][name]" required placeholder="Nama Kriteria" style="height: 100%; padding: 0 1rem;">
+                        </div>
+                        <div class="input-wrapper" style="flex: 1.2; display: flex; align-items: center; gap: 0.25rem; padding-right: 0.5rem; height: 38px; border-radius: 8px;">
+                            <input type="number" name="skills[${groupIdx}][aspects][0][weight]" min="1" max="100" required placeholder="Bobot" value="100" style="box-shadow: none; border: none; background: transparent; width: 100%; text-align: center; font-weight: 700; height: 100%;">
+                            <span style="font-weight: 700; color: var(--text-secondary);">%</span>
+                        </div>
+                        <button type="button" onclick="removeSkillAspectRow(this)" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; color: var(--accent-red); display: flex; align-items: center; justify-content: center; transition: var(--transition);" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
+                            <i class="fa-solid fa-trash" style="font-size: 0.8rem;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem; text-align: right; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); border-top: 1px dashed #d1d9e6; padding-top: 0.75rem;">
+                    Subtotal Bobot: <span class="skill-weight-total" style="color: var(--accent-blue);">100%</span>
+                </div>
+            `;
+
+            container.appendChild(group);
+            skillGroupCounter++;
+            calculateTotalWeight();
+            checkAndAutoSave();
+        }
+
+        function addSkillAspectRow(groupIdx) {
+            const group = document.querySelector(`.skill-group[data-index="${groupIdx}"]`);
+            const container = group.querySelector('.skill-aspects-container');
+            const aspectIdx = skillAspectCounters[groupIdx];
+
             const row = document.createElement('div');
-            row.className = 'aspect-row ' + type + '-row';
+            row.className = 'aspect-row skill-aspect-row';
             row.style.display = 'flex';
             row.style.gap = '0.75rem';
             row.style.alignItems = 'center';
             row.style.width = '100%';
 
-            const counter = type === 'character' ? charCounter : skillCounter;
-
             row.innerHTML = `
                 <div class="input-wrapper" style="flex: 3; height: 38px;">
-                    <input type="text" name="${type}_aspects[${counter}][name]" required placeholder="Nama Kriteria" style="height: 100%;">
+                    <input type="text" name="skills[${groupIdx}][aspects][${aspectIdx}][name]" required placeholder="Nama Kriteria" style="height: 100%; padding: 0 1rem;">
                 </div>
                 <div class="input-wrapper" style="flex: 1.2; display: flex; align-items: center; gap: 0.25rem; padding-right: 0.5rem; height: 38px; border-radius: 8px;">
-                    <input type="number" name="${type}_aspects[${counter}][weight]" min="1" max="100" required placeholder="Bobot" value="0" style="box-shadow: none; border: none; background: transparent; width: 100%; text-align: center; font-weight: 700; height: 100%;">
+                    <input type="number" name="skills[${groupIdx}][aspects][${aspectIdx}][weight]" min="1" max="100" required placeholder="Bobot" value="0" style="box-shadow: none; border: none; background: transparent; width: 100%; text-align: center; font-weight: 700; height: 100%;">
                     <span style="font-weight: 700; color: var(--text-secondary);">%</span>
                 </div>
-                <button type="button" onclick="removeAspectRow(this, '${type}')" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; color: var(--accent-red); display: flex; align-items: center; justify-content: center; transition: var(--transition);" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
+                <button type="button" onclick="removeSkillAspectRow(this)" style="border: none; background: var(--bg-primary); box-shadow: var(--nm-flat-sm); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; color: var(--accent-red); display: flex; align-items: center; justify-content: center; transition: var(--transition);" onmouseover="this.style.boxShadow='var(--nm-flat-hover)'" onmouseout="this.style.boxShadow='var(--nm-flat-sm)'">
                     <i class="fa-solid fa-trash" style="font-size: 0.8rem;"></i>
                 </button>
             `;
 
             container.appendChild(row);
-            if (type === 'character') {
-                charCounter++;
-            } else {
-                skillCounter++;
-            }
+            skillAspectCounters[groupIdx]++;
             calculateTotalWeight();
             checkAndAutoSave();
         }
@@ -429,9 +564,9 @@
         let pendingDeleteType = null;
 
         function removeAspectRow(button, type) {
-            const rows = document.querySelectorAll('.' + type + '-row');
+            const rows = document.querySelectorAll('.character-row');
             if (rows.length <= 1) {
-                alert('Minimal harus terdapat 1 aspek penilaian dalam kategori ini.');
+                alert('Minimal harus terdapat 1 aspek penilaian karakter.');
                 return;
             }
 
@@ -439,15 +574,56 @@
             const hasIdInput = row.querySelector('input[name$="[id]"]');
 
             if (hasIdInput && hasIdInput.value !== '') {
-                // Show custom neomorphism modal for deleting database aspects
                 pendingDeleteRow = row;
                 pendingDeleteType = type;
                 const modal = document.getElementById('confirm-delete-modal');
-                if (modal) {
-                    modal.style.display = 'flex';
-                }
+                if (modal) modal.style.display = 'flex';
             } else {
-                // For new aspects not yet saved to the DB, delete immediately
+                row.remove();
+                calculateTotalWeight();
+                checkAndAutoSave();
+            }
+        }
+
+        function removeSkillGroup(button) {
+            const groups = document.querySelectorAll('.skill-group');
+            if (groups.length <= 1) {
+                alert('Minimal harus terdapat 1 kelompok skill.');
+                return;
+            }
+
+            const group = button.closest('.skill-group');
+            const hasIdInput = group.querySelector('input[name$="[id]"]');
+
+            if (hasIdInput && hasIdInput.value !== '') {
+                pendingDeleteRow = group;
+                pendingDeleteType = 'skill_group';
+                const modal = document.getElementById('confirm-delete-modal');
+                if (modal) modal.style.display = 'flex';
+            } else {
+                group.remove();
+                calculateTotalWeight();
+                checkAndAutoSave();
+            }
+        }
+
+        function removeSkillAspectRow(button) {
+            const group = button.closest('.skill-group');
+            const rows = group.querySelectorAll('.skill-aspect-row');
+            if (rows.length <= 1) {
+                alert('Minimal harus terdapat 1 aspek kriteria penilaian di dalam kelompok skill ini.');
+                return;
+            }
+
+            const row = button.closest('.aspect-row');
+            const hasIdInput = row.querySelector('input[name$="[id]"]');
+
+            if (hasIdInput && hasIdInput.value !== '') {
+                pendingDeleteRow = row;
+                pendingDeleteType = 'skill_aspect';
+                const modal = document.getElementById('confirm-delete-modal');
+                if (modal) modal.style.display = 'flex';
+            } else {
                 row.remove();
                 calculateTotalWeight();
                 checkAndAutoSave();
@@ -462,12 +638,16 @@
             });
             document.getElementById('char-weight-total').innerText = charWeightTotal + '%';
 
-            let skillWeightTotal = 0;
-            const skillInputs = document.querySelectorAll('input[name^="skill_aspects"][name$="[weight]"]');
-            skillInputs.forEach(input => {
-                skillWeightTotal += parseInt(input.value) || 0;
+            // Calculate each skill group weight subtotal
+            const skillGroups = document.querySelectorAll('.skill-group');
+            skillGroups.forEach(group => {
+                let skillWeightTotal = 0;
+                const skillInputs = group.querySelectorAll('.skill-aspects-container input[name$="[weight]"]');
+                skillInputs.forEach(input => {
+                    skillWeightTotal += parseInt(input.value) || 0;
+                });
+                group.querySelector('.skill-weight-total').innerText = skillWeightTotal + '%';
             });
-            document.getElementById('skill-weight-total').innerText = skillWeightTotal + '%';
         }
 
         // Auto Save Logic with Validation Check
@@ -478,12 +658,6 @@
             const charInputs = document.querySelectorAll('input[name^="character_aspects"][name$="[weight]"]');
             charInputs.forEach(input => {
                 charWeightTotal += parseInt(input.value) || 0;
-            });
-
-            let skillWeightTotal = 0;
-            const skillInputs = document.querySelectorAll('input[name^="skill_aspects"][name$="[weight]"]');
-            skillInputs.forEach(input => {
-                skillWeightTotal += parseInt(input.value) || 0;
             });
 
             const startDate = document.querySelector('input[name="start_date"]').value;
@@ -524,9 +698,36 @@
                 return;
             }
 
-            if (skillInputs.length > 0 && skillWeightTotal !== 100) {
+            // Verify each skill group sums to 100%
+            let allSkillsValid = true;
+            let invalidSkillNames = [];
+            const skillGroups = document.querySelectorAll('.skill-group');
+            
+            if (skillGroups.length === 0) {
                 if (statusEl) {
-                    statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> Bobot skill harus 100% (saat ini: ' + skillWeightTotal + '%)';
+                    statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> Harus menginputkan minimal 1 kelompok skill';
+                    statusEl.style.color = '#f59e0b';
+                }
+                return;
+            }
+
+            skillGroups.forEach((group, index) => {
+                let skillWeightTotal = 0;
+                const skillInputs = group.querySelectorAll('.skill-aspects-container input[name$="[weight]"]');
+                skillInputs.forEach(input => {
+                    skillWeightTotal += parseInt(input.value) || 0;
+                });
+                if (skillWeightTotal !== 100) {
+                    allSkillsValid = false;
+                    const skillNameInput = group.querySelector('input[name^="skills"][name$="[name]"]');
+                    const skillName = (skillNameInput && skillNameInput.value.trim()) ? skillNameInput.value.trim() : `Kelompok ke-${index + 1}`;
+                    invalidSkillNames.push(`${skillName} (${skillWeightTotal}%)`);
+                }
+            });
+
+            if (!allSkillsValid) {
+                if (statusEl) {
+                    statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> Bobot kelompok skill berikut belum 100%: ' + invalidSkillNames.join(', ');
                     statusEl.style.color = '#f59e0b';
                 }
                 return;
@@ -542,7 +743,7 @@
 
             if (!allNamesFilled) {
                 if (statusEl) {
-                    statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> Semua nama kriteria harus diisi';
+                    statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> Semua nama kriteria & skill harus diisi';
                     statusEl.style.color = '#f59e0b';
                 }
                 return;
@@ -574,9 +775,16 @@
                         'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
                     }
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
+                .then(response => {
+                    return response.json().then(data => {
+                        return { ok: response.ok, data: data };
+                    }).catch(() => {
+                        return { ok: response.ok, data: { success: false, message: 'Gagal memproses respons server' } };
+                    });
+                })
+                .then(res => {
+                    const data = res.data;
+                    if (res.ok && data.success) {
                         if (statusEl) {
                             statusEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color: #10b981;"></i> Perubahan disimpan';
                             statusEl.style.color = '#10b981';
@@ -587,7 +795,7 @@
                         }
                     } else {
                         if (statusEl) {
-                            statusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color: #dc2626;"></i> Gagal menyimpan perubahan';
+                            statusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color: #dc2626;"></i> Gagal menyimpan: ' + (data.message || 'Error tidak diketahui');
                             statusEl.style.color = '#dc2626';
                         }
                     }
@@ -595,7 +803,7 @@
                 .catch(error => {
                     console.error('Error saving settings:', error);
                     if (statusEl) {
-                        statusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color: #dc2626;"></i> Gagal menyimpan perubahan';
+                        statusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color: #dc2626;"></i> Koneksi terputus atau error server';
                         statusEl.style.color = '#dc2626';
                     }
                 });

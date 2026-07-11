@@ -536,7 +536,7 @@ class DashboardController extends Controller
             abort(404, 'Data Registrasi Santri tidak ditemukan.');
         }
 
-        $educationStudent = \App\Models\EducationStudent::where('registration_id', $registration->id)->first();
+        $educationStudent = \App\Models\EducationStudent::with('classroom')->where('registration_id', $registration->id)->first();
         $activePeriod = null;
         $months = [];
         $selectedMonth = $request->input('month');
@@ -546,6 +546,7 @@ class DashboardController extends Controller
         $scores = collect();
 
         if ($educationStudent) {
+            $classroom = $educationStudent->classroom;
             $activePeriod = \App\Models\EducationPeriod::with('aspects')
                 ->where('id', $educationStudent->education_period_id)
                 ->first();
@@ -567,10 +568,23 @@ class DashboardController extends Controller
                     $selectedMonth = $months[0]['value'];
                 }
 
-                if (!$selectedAspectId) {
-                    $selectedAspectId = $activePeriod->aspects->first()?->id;
+                // Filter aspects
+                $allowedAspects = $activePeriod->aspects()
+                    ->where(function($q) use ($classroom) {
+                        $q->where('type', 'character');
+                        if ($classroom && $classroom->education_skill_id) {
+                            $q->orWhere(function($q2) use ($classroom) {
+                                $q2->where('type', 'skill')
+                                   ->where('education_skill_id', $classroom->education_skill_id);
+                            });
+                        }
+                    })->get();
+                $activePeriod->setRelation('aspects', $allowedAspects);
+
+                if (!$selectedAspectId || !$allowedAspects->where('id', $selectedAspectId)->first()) {
+                    $selectedAspectId = $allowedAspects->first()?->id;
                 }
-                $selectedAspect = $activePeriod->aspects->where('id', $selectedAspectId)->first();
+                $selectedAspect = $allowedAspects->where('id', $selectedAspectId)->first();
 
                 if ($selectedMonth) {
                     $monthCarbon = \Carbon\Carbon::parse($selectedMonth . '-01');
@@ -625,6 +639,18 @@ class DashboardController extends Controller
                 ->first();
 
             if ($activePeriod) {
+                $classroom = $matriculationStudent->classroom;
+                $allowedAspects = $activePeriod->aspects()
+                    ->where(function($q) use ($classroom) {
+                        $q->where('type', 'character');
+                        if ($classroom && $classroom->matriculation_skill_id) {
+                            $q->orWhere(function($q2) use ($classroom) {
+                                $q2->where('type', 'skill')
+                                   ->where('matriculation_skill_id', $classroom->matriculation_skill_id);
+                            });
+                        }
+                    })->get();
+                $activePeriod->setRelation('aspects', $allowedAspects);
                 // Generate period months
                 $periodMonths = [];
                 $start = \Carbon\Carbon::parse($activePeriod->start_date)->startOfMonth();
@@ -824,11 +850,24 @@ class DashboardController extends Controller
         $raporPayload = null;
 
         if ($educationStudent) {
+            $classroom = $educationStudent->classroom;
             $activePeriod = \App\Models\EducationPeriod::with('aspects')
                 ->where('id', $educationStudent->education_period_id)
                 ->first();
 
             if ($activePeriod) {
+                // Filter aspects
+                $allowedAspects = $activePeriod->aspects()
+                    ->where(function($q) use ($classroom) {
+                        $q->where('type', 'character');
+                        if ($classroom && $classroom->education_skill_id) {
+                            $q->orWhere(function($q2) use ($classroom) {
+                                $q2->where('type', 'skill')
+                                   ->where('education_skill_id', $classroom->education_skill_id);
+                            });
+                        }
+                    })->get();
+                $activePeriod->setRelation('aspects', $allowedAspects);
                 // Generate period months
                 $periodMonths = [];
                 $start = \Carbon\Carbon::parse($activePeriod->start_date)->startOfMonth();
@@ -1773,7 +1812,7 @@ class DashboardController extends Controller
         $selectedAcademicYearId = $request->input('academic_year_id', $academicYears->first()?->id);
         $selectedBatchId = $request->input('batch_id', $batches->first()?->id);
 
-        $period = MatriculationPeriod::with('aspects')
+        $period = MatriculationPeriod::with(['aspects', 'skills.aspects'])
             ->where('academic_year_id', $selectedAcademicYearId)
             ->where('batch_id', $selectedBatchId)
             ->first();
@@ -1797,27 +1836,46 @@ class DashboardController extends Controller
             'character_aspects.*.id' => 'nullable|exists:matriculation_aspects,id',
             'character_aspects.*.name' => 'required|string|max:255',
             'character_aspects.*.weight' => 'required|integer|min:1|max:100',
-            'skill_aspects' => 'nullable|array',
-            'skill_aspects.*.id' => 'nullable|exists:matriculation_aspects,id',
-            'skill_aspects.*.name' => 'required|string|max:255',
-            'skill_aspects.*.weight' => 'required|integer|min:1|max:100',
+            'skills' => 'nullable|array',
+            'skills.*.id' => 'nullable|exists:matriculation_skills,id',
+            'skills.*.name' => 'required|string|max:255',
+            'skills.*.aspects' => 'required|array|min:1',
+            'skills.*.aspects.*.id' => 'nullable|exists:matriculation_aspects,id',
+            'skills.*.aspects.*.name' => 'required|string|max:255',
+            'skills.*.aspects.*.weight' => 'required|integer|min:1|max:100',
         ]);
 
-        if (empty($request->character_aspects) && empty($request->skill_aspects)) {
-            return redirect()->back()->withErrors(['aspects' => 'Minimal harus menginputkan 1 aspek penilaian karakter atau skill.'])->withInput();
+        if (empty($request->character_aspects) && empty($request->skills)) {
+            $msg = 'Minimal harus menginputkan 1 aspek penilaian karakter atau skill.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->back()->withErrors(['aspects' => $msg])->withInput();
         }
 
         if (!empty($request->character_aspects)) {
             $charWeight = array_sum(array_column($request->character_aspects, 'weight'));
             if ($charWeight !== 100) {
-                return redirect()->back()->withErrors(['char_weight' => 'Total bobot aspek Penilaian Karakter harus 100%. Saat ini: ' . $charWeight . '%'])->withInput();
+                $msg = 'Total bobot aspek Penilaian Karakter harus 100%. Saat ini: ' . $charWeight . '%';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+                return redirect()->back()->withErrors(['char_weight' => $msg])->withInput();
             }
         }
 
-        if (!empty($request->skill_aspects)) {
-            $skillWeight = array_sum(array_column($request->skill_aspects, 'weight'));
-            if ($skillWeight !== 100) {
-                return redirect()->back()->withErrors(['skill_weight' => 'Total bobot aspek Penilaian Skill harus 100%. Saat ini: ' . $skillWeight . '%'])->withInput();
+        if (!empty($request->skills)) {
+            foreach ($request->skills as $sIdx => $skillInput) {
+                $skillWeight = array_sum(array_column($skillInput['aspects'] ?? [], 'weight'));
+                if ($skillWeight !== 100) {
+                    $msg = 'Total bobot aspek Penilaian Skill "' . $skillInput['name'] . '" harus 100%. Saat ini: ' . $skillWeight . '%';
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json(['success' => false, 'message' => $msg], 422);
+                    }
+                    return redirect()->back()->withErrors([
+                        'skill_weight_' . $sIdx => $msg
+                    ])->withInput();
+                }
             }
         }
 
@@ -1837,26 +1895,11 @@ class DashboardController extends Controller
             'end_date' => $request->end_date,
         ]);
 
-        // Sync aspects (keep, update, or create)
+        // Sync Skills and aspects
+        $keepSkillIds = [];
         $keepAspectIds = [];
-        if (!empty($request->character_aspects)) {
-            foreach ($request->character_aspects as $asp) {
-                if (!empty($asp['id'])) {
-                    $keepAspectIds[] = $asp['id'];
-                }
-            }
-        }
-        if (!empty($request->skill_aspects)) {
-            foreach ($request->skill_aspects as $asp) {
-                if (!empty($asp['id'])) {
-                    $keepAspectIds[] = $asp['id'];
-                }
-            }
-        }
 
-        // Delete only the aspects that are not present in the request
-        $period->aspects()->whereNotIn('id', $keepAspectIds)->delete();
-
+        // 1. Character aspects
         if (!empty($request->character_aspects)) {
             foreach ($request->character_aspects as $asp) {
                 if (!empty($asp['id'])) {
@@ -1864,8 +1907,9 @@ class DashboardController extends Controller
                         'name' => $asp['name'],
                         'weight_percentage' => $asp['weight'],
                     ]);
+                    $keepAspectIds[] = $asp['id'];
                 } else {
-                    $period->aspects()->create([
+                    $newAsp = $period->aspects()->create([
                         'name' => $asp['name'],
                         'weight_percentage' => $asp['weight'],
                         'type' => 'character',
@@ -1873,28 +1917,54 @@ class DashboardController extends Controller
                         'target_weekly' => 5,
                         'target_monthly' => 20,
                     ]);
+                    $keepAspectIds[] = $newAsp->id;
                 }
             }
         }
-        if (!empty($request->skill_aspects)) {
-            foreach ($request->skill_aspects as $asp) {
-                if (!empty($asp['id'])) {
-                    $period->aspects()->where('id', $asp['id'])->update([
-                        'name' => $asp['name'],
-                        'weight_percentage' => $asp['weight'],
+
+        // 2. Dynamic Skills
+        if (!empty($request->skills)) {
+            foreach ($request->skills as $skillInput) {
+                if (!empty($skillInput['id'])) {
+                    $skill = $period->skills()->findOrFail($skillInput['id']);
+                    $skill->update([
+                        'name' => $skillInput['name'],
                     ]);
                 } else {
-                    $period->aspects()->create([
-                        'name' => $asp['name'],
-                        'weight_percentage' => $asp['weight'],
-                        'type' => 'skill',
-                        'input_type' => 'score',
-                        'target_weekly' => 80,
-                        'target_monthly' => 80,
+                    $skill = $period->skills()->create([
+                        'name' => $skillInput['name'],
                     ]);
+                }
+                $keepSkillIds[] = $skill->id;
+
+                // Sync aspects of this skill
+                foreach ($skillInput['aspects'] ?? [] as $asp) {
+                    if (!empty($asp['id'])) {
+                        $period->aspects()->where('id', $asp['id'])->update([
+                            'matriculation_skill_id' => $skill->id,
+                            'name' => $asp['name'],
+                            'weight_percentage' => $asp['weight'],
+                        ]);
+                        $keepAspectIds[] = $asp['id'];
+                    } else {
+                        $newAsp = $period->aspects()->create([
+                            'matriculation_skill_id' => $skill->id,
+                            'name' => $asp['name'],
+                            'weight_percentage' => $asp['weight'],
+                            'type' => 'skill',
+                            'input_type' => 'score',
+                            'target_weekly' => 80,
+                            'target_monthly' => 80,
+                        ]);
+                        $keepAspectIds[] = $newAsp->id;
+                    }
                 }
             }
         }
+
+        // Clean up deleted skills and aspects
+        $period->aspects()->whereNotIn('id', $keepAspectIds)->delete();
+        $period->skills()->whereNotIn('id', $keepSkillIds)->delete();
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -1919,7 +1989,8 @@ class DashboardController extends Controller
         $selectedAcademicYearId = $request->input('academic_year_id', $academicYears->first()?->id);
         $selectedBatchId = $request->input('batch_id', $batches->first()?->id);
 
-        $activePeriod = MatriculationPeriod::where('academic_year_id', $selectedAcademicYearId)
+        $activePeriod = MatriculationPeriod::with('skills')
+            ->where('academic_year_id', $selectedAcademicYearId)
             ->where('batch_id', $selectedBatchId)
             ->first();
 
@@ -1940,7 +2011,7 @@ class DashboardController extends Controller
 
         $teachers = \App\Models\User::where('role', 'pengajar')->orderBy('name', 'asc')->get();
 
-        $classrooms = Classroom::with(['homeroomTeacher', 'assistantTeachers', 'leaderRegistration'])
+        $classrooms = Classroom::with(['homeroomTeacher', 'assistantTeachers', 'leaderRegistration', 'matriculationSkill'])
             ->where('academic_year_id', $selectedAcademicYearId)
             ->where('batch_id', $selectedBatchId)
             ->get();
@@ -1983,6 +2054,25 @@ class DashboardController extends Controller
         $classroom->assistantTeachers()->sync($request->assistant_teacher_ids ?? []);
 
         return redirect()->back()->with('success', 'Pembimbing Wali & Wakil Wali kelas berhasil diperbarui.');
+    }
+
+    public function matriculationAssignSkill($id, Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'super_admin') {
+            return redirect('/login');
+        }
+
+        $request->validate([
+            'matriculation_skill_id' => 'nullable|exists:matriculation_skills,id',
+        ]);
+
+        $classroom = Classroom::findOrFail($id);
+        $classroom->update([
+            'matriculation_skill_id' => $request->matriculation_skill_id,
+        ]);
+
+        return redirect()->back()->with('success', 'Skill penilaian kelas berhasil diperbarui.');
     }
 
     public function matriculationAssignStudents(Request $request)
@@ -2066,6 +2156,31 @@ class DashboardController extends Controller
 
         $selectedClassroomId = $request->input('classroom_id', $classrooms->first()?->id);
 
+        $classroom = $selectedClassroomId ? Classroom::with('matriculationSkill')->find($selectedClassroomId) : null;
+
+        $selectedAspectId = $request->input('matriculation_aspect_id');
+        $allowedAspects = collect();
+        if ($activePeriod) {
+            $allowedAspects = $activePeriod->aspects()
+                ->where(function($q) use ($classroom) {
+                    $q->where('type', 'character');
+                    if ($classroom && $classroom->matriculation_skill_id) {
+                        $q->orWhere(function($q2) use ($classroom) {
+                            $q2->where('type', 'skill')
+                               ->where('matriculation_skill_id', $classroom->matriculation_skill_id);
+                        });
+                    }
+                })->get();
+            $activePeriod->setRelation('aspects', $allowedAspects);
+
+            $exists = $allowedAspects->where('id', $selectedAspectId)->first();
+            if (!$exists) {
+                $selectedAspectId = $allowedAspects->first()?->id;
+            }
+        }
+
+        $selectedAspect = $activePeriod ? $allowedAspects->where('id', $selectedAspectId)->first() : null;
+
         // Generate dynamic months between start_date and end_date
         $months = [];
         $selectedMonth = $request->input('month');
@@ -2085,16 +2200,6 @@ class DashboardController extends Controller
         if ((empty($selectedMonth) || !$monthExists) && count($months) > 0) {
             $selectedMonth = $months[0]['value'];
         }
-
-        $selectedAspectId = $request->input('matriculation_aspect_id');
-        if ($activePeriod) {
-            $exists = $activePeriod->aspects->where('id', $selectedAspectId)->first();
-            if (!$exists) {
-                $selectedAspectId = $activePeriod->aspects->first()?->id;
-            }
-        }
-
-        $selectedAspect = $activePeriod ? $activePeriod->aspects->where('id', $selectedAspectId)->first() : null;
 
         // Generate dates for selected month that fall within period
         $dates = [];
@@ -2233,6 +2338,21 @@ class DashboardController extends Controller
 
         $selectedClassroomId = $request->input('classroom_id', $classrooms->first()?->id);
 
+        $classroom = $selectedClassroomId ? Classroom::find($selectedClassroomId) : null;
+        if ($activePeriod) {
+            $allowedAspects = $activePeriod->aspects()
+                ->where(function($q) use ($classroom) {
+                    $q->where('type', 'character');
+                    if ($classroom && $classroom->matriculation_skill_id) {
+                        $q->orWhere(function($q2) use ($classroom) {
+                            $q2->where('type', 'skill')
+                               ->where('matriculation_skill_id', $classroom->matriculation_skill_id);
+                        });
+                    }
+                })->get();
+            $activePeriod->setRelation('aspects', $allowedAspects);
+        }
+
         $students = [];
         if ($activePeriod && $selectedClassroomId) {
             $students = MatriculationStudent::with(['registration', 'classroom', 'scores'])
@@ -2342,6 +2462,20 @@ class DashboardController extends Controller
             ->where('batch_id', $classroom->batch_id)
             ->first();
 
+        if ($activePeriod) {
+            $allowedAspects = $activePeriod->aspects()
+                ->where(function($q) use ($classroom) {
+                    $q->where('type', 'character');
+                    if ($classroom->matriculation_skill_id) {
+                        $q->orWhere(function($q2) use ($classroom) {
+                            $q2->where('type', 'skill')
+                               ->where('matriculation_skill_id', $classroom->matriculation_skill_id);
+                        });
+                    }
+                })->get();
+            $activePeriod->setRelation('aspects', $allowedAspects);
+        }
+
         $students = [];
         $months = [];
         if ($activePeriod) {
@@ -2430,7 +2564,7 @@ class DashboardController extends Controller
             return redirect('/login');
         }
 
-        $classroom = Classroom::with(['academicYear', 'batch', 'leaderRegistration', 'assistantTeachers'])
+        $classroom = Classroom::with(['academicYear', 'batch', 'leaderRegistration', 'assistantTeachers', 'educationSkill'])
             ->where(function($q) use ($user) {
                 $q->where('homeroom_teacher_id', $user->id)
                   ->orWhereHas('assistantTeachers', fn($q) => $q->where('users.id', $user->id));
@@ -2441,6 +2575,20 @@ class DashboardController extends Controller
             ->where('academic_year_id', $classroom->academic_year_id)
             ->where('batch_id', $classroom->batch_id)
             ->first();
+
+        if ($activePeriod) {
+            $allowedAspects = $activePeriod->aspects()
+                ->where(function($q) use ($classroom) {
+                    $q->where('type', 'character');
+                    if ($classroom && $classroom->education_skill_id) {
+                        $q->orWhere(function($q2) use ($classroom) {
+                            $q2->where('type', 'skill')
+                               ->where('education_skill_id', $classroom->education_skill_id);
+                        });
+                    }
+                })->get();
+            $activePeriod->setRelation('aspects', $allowedAspects);
+        }
 
         $students = [];
         $months = [];
@@ -2577,14 +2725,27 @@ class DashboardController extends Controller
         }
 
         $selectedAspectId = $request->input('matriculation_aspect_id');
+        $allowedAspects = collect();
         if ($activePeriod) {
-            $exists = $activePeriod->aspects->where('id', $selectedAspectId)->first();
+            $allowedAspects = $activePeriod->aspects()
+                ->where(function($q) use ($classroom) {
+                    $q->where('type', 'character');
+                    if ($classroom->matriculation_skill_id) {
+                        $q->orWhere(function($q2) use ($classroom) {
+                            $q2->where('type', 'skill')
+                               ->where('matriculation_skill_id', $classroom->matriculation_skill_id);
+                        });
+                    }
+                })->get();
+            $activePeriod->setRelation('aspects', $allowedAspects);
+
+            $exists = $allowedAspects->where('id', $selectedAspectId)->first();
             if (!$exists) {
-                $selectedAspectId = $activePeriod->aspects->first()?->id;
+                $selectedAspectId = $allowedAspects->first()?->id;
             }
         }
 
-        $selectedAspect = $activePeriod ? $activePeriod->aspects->where('id', $selectedAspectId)->first() : null;
+        $selectedAspect = $activePeriod ? $allowedAspects->where('id', $selectedAspectId)->first() : null;
 
         // Generate dates for selected month that fall within period
         $dates = [];
@@ -2713,7 +2874,7 @@ class DashboardController extends Controller
         $selectedAcademicYearId = $request->input('academic_year_id', $academicYears->first()?->id);
         $selectedBatchId = $request->input('batch_id', $batches->first()?->id);
 
-        $period = EducationPeriod::with('aspects')
+        $period = EducationPeriod::with(['aspects', 'skills.aspects'])
             ->where('academic_year_id', $selectedAcademicYearId)
             ->where('batch_id', $selectedBatchId)
             ->first();
@@ -2737,27 +2898,46 @@ class DashboardController extends Controller
             'character_aspects.*.id' => 'nullable|exists:education_aspects,id',
             'character_aspects.*.name' => 'required|string|max:255',
             'character_aspects.*.weight' => 'required|integer|min:1|max:100',
-            'skill_aspects' => 'nullable|array',
-            'skill_aspects.*.id' => 'nullable|exists:education_aspects,id',
-            'skill_aspects.*.name' => 'required|string|max:255',
-            'skill_aspects.*.weight' => 'required|integer|min:1|max:100',
+            'skills' => 'nullable|array',
+            'skills.*.id' => 'nullable|exists:education_skills,id',
+            'skills.*.name' => 'required|string|max:255',
+            'skills.*.aspects' => 'required|array|min:1',
+            'skills.*.aspects.*.id' => 'nullable|exists:education_aspects,id',
+            'skills.*.aspects.*.name' => 'required|string|max:255',
+            'skills.*.aspects.*.weight' => 'required|integer|min:1|max:100',
         ]);
 
-        if (empty($request->character_aspects) && empty($request->skill_aspects)) {
-            return redirect()->back()->withErrors(['aspects' => 'Minimal harus menginputkan 1 aspek penilaian karakter atau skill.'])->withInput();
+        if (empty($request->character_aspects) && empty($request->skills)) {
+            $msg = 'Minimal harus menginputkan 1 aspek penilaian karakter atau skill.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->back()->withErrors(['aspects' => $msg])->withInput();
         }
 
         if (!empty($request->character_aspects)) {
             $charWeight = array_sum(array_column($request->character_aspects, 'weight'));
             if ($charWeight !== 100) {
-                return redirect()->back()->withErrors(['char_weight' => 'Total bobot aspek Penilaian Karakter harus 100%. Saat ini: ' . $charWeight . '%'])->withInput();
+                $msg = 'Total bobot aspek Penilaian Karakter harus 100%. Saat ini: ' . $charWeight . '%';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+                return redirect()->back()->withErrors(['char_weight' => $msg])->withInput();
             }
         }
 
-        if (!empty($request->skill_aspects)) {
-            $skillWeight = array_sum(array_column($request->skill_aspects, 'weight'));
-            if ($skillWeight !== 100) {
-                return redirect()->back()->withErrors(['skill_weight' => 'Total bobot aspek Penilaian Skill harus 100%. Saat ini: ' . $skillWeight . '%'])->withInput();
+        if (!empty($request->skills)) {
+            foreach ($request->skills as $sIdx => $skillInput) {
+                $skillWeight = array_sum(array_column($skillInput['aspects'] ?? [], 'weight'));
+                if ($skillWeight !== 100) {
+                    $msg = 'Total bobot aspek Penilaian Skill "' . $skillInput['name'] . '" harus 100%. Saat ini: ' . $skillWeight . '%';
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json(['success' => false, 'message' => $msg], 422);
+                    }
+                    return redirect()->back()->withErrors([
+                        'skill_weight_' . $sIdx => $msg
+                    ])->withInput();
+                }
             }
         }
 
@@ -2776,24 +2956,11 @@ class DashboardController extends Controller
             'end_date' => $request->end_date,
         ]);
 
+        // Sync Skills and aspects
+        $keepSkillIds = [];
         $keepAspectIds = [];
-        if (!empty($request->character_aspects)) {
-            foreach ($request->character_aspects as $asp) {
-                if (!empty($asp['id'])) {
-                    $keepAspectIds[] = $asp['id'];
-                }
-            }
-        }
-        if (!empty($request->skill_aspects)) {
-            foreach ($request->skill_aspects as $asp) {
-                if (!empty($asp['id'])) {
-                    $keepAspectIds[] = $asp['id'];
-                }
-            }
-        }
 
-        $period->aspects()->whereNotIn('id', $keepAspectIds)->delete();
-
+        // 1. Character aspects
         if (!empty($request->character_aspects)) {
             foreach ($request->character_aspects as $asp) {
                 if (!empty($asp['id'])) {
@@ -2801,8 +2968,9 @@ class DashboardController extends Controller
                         'name' => $asp['name'],
                         'weight_percentage' => $asp['weight'],
                     ]);
+                    $keepAspectIds[] = $asp['id'];
                 } else {
-                    $period->aspects()->create([
+                    $newAsp = $period->aspects()->create([
                         'name' => $asp['name'],
                         'weight_percentage' => $asp['weight'],
                         'type' => 'character',
@@ -2810,28 +2978,54 @@ class DashboardController extends Controller
                         'target_weekly' => 5,
                         'target_monthly' => 20,
                     ]);
+                    $keepAspectIds[] = $newAsp->id;
                 }
             }
         }
-        if (!empty($request->skill_aspects)) {
-            foreach ($request->skill_aspects as $asp) {
-                if (!empty($asp['id'])) {
-                    $period->aspects()->where('id', $asp['id'])->update([
-                        'name' => $asp['name'],
-                        'weight_percentage' => $asp['weight'],
+
+        // 2. Dynamic Skills
+        if (!empty($request->skills)) {
+            foreach ($request->skills as $skillInput) {
+                if (!empty($skillInput['id'])) {
+                    $skill = $period->skills()->findOrFail($skillInput['id']);
+                    $skill->update([
+                        'name' => $skillInput['name'],
                     ]);
                 } else {
-                    $period->aspects()->create([
-                        'name' => $asp['name'],
-                        'weight_percentage' => $asp['weight'],
-                        'type' => 'skill',
-                        'input_type' => 'score',
-                        'target_weekly' => 80,
-                        'target_monthly' => 80,
+                    $skill = $period->skills()->create([
+                        'name' => $skillInput['name'],
                     ]);
+                }
+                $keepSkillIds[] = $skill->id;
+
+                // Sync aspects of this skill
+                foreach ($skillInput['aspects'] ?? [] as $asp) {
+                    if (!empty($asp['id'])) {
+                        $period->aspects()->where('id', $asp['id'])->update([
+                            'education_skill_id' => $skill->id,
+                            'name' => $asp['name'],
+                            'weight_percentage' => $asp['weight'],
+                        ]);
+                        $keepAspectIds[] = $asp['id'];
+                    } else {
+                        $newAsp = $period->aspects()->create([
+                            'education_skill_id' => $skill->id,
+                            'name' => $asp['name'],
+                            'weight_percentage' => $asp['weight'],
+                            'type' => 'skill',
+                            'input_type' => 'score',
+                            'target_weekly' => 80,
+                            'target_monthly' => 80,
+                        ]);
+                        $keepAspectIds[] = $newAsp->id;
+                    }
                 }
             }
         }
+
+        // Clean up deleted skills and aspects
+        $period->aspects()->whereNotIn('id', $keepAspectIds)->delete();
+        $period->skills()->whereNotIn('id', $keepSkillIds)->delete();
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -2856,7 +3050,8 @@ class DashboardController extends Controller
         $selectedAcademicYearId = $request->input('academic_year_id', $academicYears->first()?->id);
         $selectedBatchId = $request->input('batch_id', $batches->first()?->id);
 
-        $activePeriod = EducationPeriod::where('academic_year_id', $selectedAcademicYearId)
+        $activePeriod = EducationPeriod::with('skills')
+            ->where('academic_year_id', $selectedAcademicYearId)
             ->where('batch_id', $selectedBatchId)
             ->first();
 
@@ -2879,7 +3074,7 @@ class DashboardController extends Controller
 
         $teachers = \App\Models\User::where('role', 'pengajar')->orderBy('name', 'asc')->get();
 
-        $classrooms = Classroom::with(['homeroomTeacher', 'assistantTeachers', 'leaderRegistration'])
+        $classrooms = Classroom::with(['homeroomTeacher', 'assistantTeachers', 'leaderRegistration', 'educationSkill'])
             ->where('academic_year_id', $selectedAcademicYearId)
             ->where('batch_id', $selectedBatchId)
             ->get();
@@ -2921,6 +3116,25 @@ class DashboardController extends Controller
         $classroom->assistantTeachers()->sync($request->assistant_teacher_ids ?? []);
 
         return redirect()->back()->with('success', 'Pembimbing Wali & Wakil Wali kelas berhasil diperbarui.');
+    }
+
+    public function educationAssignSkill($id, Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'super_admin') {
+            return redirect('/login');
+        }
+
+        $request->validate([
+            'education_skill_id' => 'nullable|exists:education_skills,id',
+        ]);
+
+        $classroom = Classroom::findOrFail($id);
+        $classroom->update([
+            'education_skill_id' => $request->education_skill_id,
+        ]);
+
+        return redirect()->back()->with('success', 'Skill penilaian kelas berhasil diperbarui.');
     }
 
     public function educationAssignStudents(Request $request)
@@ -3003,6 +3217,8 @@ class DashboardController extends Controller
 
         $selectedClassroomId = $request->input('classroom_id', $classrooms->first()?->id);
 
+        $classroom = $selectedClassroomId ? Classroom::with('educationSkill')->find($selectedClassroomId) : null;
+
         $months = [];
         $selectedMonth = $request->input('month');
         if ($activePeriod) {
@@ -3023,14 +3239,27 @@ class DashboardController extends Controller
         }
 
         $selectedAspectId = $request->input('education_aspect_id');
+        $allowedAspects = collect();
         if ($activePeriod) {
-            $exists = $activePeriod->aspects->where('id', $selectedAspectId)->first();
+            $allowedAspects = $activePeriod->aspects()
+                ->where(function($q) use ($classroom) {
+                    $q->where('type', 'character');
+                    if ($classroom && $classroom->education_skill_id) {
+                        $q->orWhere(function($q2) use ($classroom) {
+                            $q2->where('type', 'skill')
+                               ->where('education_skill_id', $classroom->education_skill_id);
+                        });
+                    }
+                })->get();
+            $activePeriod->setRelation('aspects', $allowedAspects);
+
+            $exists = $allowedAspects->where('id', $selectedAspectId)->first();
             if (!$exists) {
-                $selectedAspectId = $activePeriod->aspects->first()?->id;
+                $selectedAspectId = $allowedAspects->first()?->id;
             }
         }
 
-        $selectedAspect = $activePeriod ? $activePeriod->aspects->where('id', $selectedAspectId)->first() : null;
+        $selectedAspect = $activePeriod ? $allowedAspects->where('id', $selectedAspectId)->first() : null;
 
         $dates = [];
         if ($activePeriod && $selectedMonth) {
@@ -3157,6 +3386,21 @@ class DashboardController extends Controller
 
         $selectedClassroomId = $request->input('classroom_id', $classrooms->first()?->id);
 
+        $classroom = $selectedClassroomId ? Classroom::find($selectedClassroomId) : null;
+        if ($activePeriod) {
+            $allowedAspects = $activePeriod->aspects()
+                ->where(function($q) use ($classroom) {
+                    $q->where('type', 'character');
+                    if ($classroom && $classroom->education_skill_id) {
+                        $q->orWhere(function($q2) use ($classroom) {
+                            $q2->where('type', 'skill')
+                               ->where('education_skill_id', $classroom->education_skill_id);
+                        });
+                    }
+                })->get();
+            $activePeriod->setRelation('aspects', $allowedAspects);
+        }
+
         $students = [];
         if ($activePeriod && $selectedClassroomId) {
             $students = EducationStudent::with(['registration', 'classroom', 'scores'])
@@ -3218,7 +3462,7 @@ class DashboardController extends Controller
             return redirect('/login');
         }
 
-        $classroom = Classroom::with(['academicYear', 'batch'])
+        $classroom = Classroom::with(['academicYear', 'batch', 'educationSkill'])
             ->where(function($q) use ($user) {
                 $q->where('homeroom_teacher_id', $user->id)
                   ->orWhereHas('assistantTeachers', fn($q) => $q->where('users.id', $user->id));
@@ -3250,14 +3494,27 @@ class DashboardController extends Controller
         }
 
         $selectedAspectId = $request->input('education_aspect_id');
+        $allowedAspects = collect();
         if ($activePeriod) {
-            $exists = $activePeriod->aspects->where('id', $selectedAspectId)->first();
+            $allowedAspects = $activePeriod->aspects()
+                ->where(function($q) use ($classroom) {
+                    $q->where('type', 'character');
+                    if ($classroom && $classroom->education_skill_id) {
+                        $q->orWhere(function($q2) use ($classroom) {
+                            $q2->where('type', 'skill')
+                               ->where('education_skill_id', $classroom->education_skill_id);
+                        });
+                    }
+                })->get();
+            $activePeriod->setRelation('aspects', $allowedAspects);
+
+            $exists = $allowedAspects->where('id', $selectedAspectId)->first();
             if (!$exists) {
-                $selectedAspectId = $activePeriod->aspects->first()?->id;
+                $selectedAspectId = $allowedAspects->first()?->id;
             }
         }
 
-        $selectedAspect = $activePeriod ? $activePeriod->aspects->where('id', $selectedAspectId)->first() : null;
+        $selectedAspect = $activePeriod ? $allowedAspects->where('id', $selectedAspectId)->first() : null;
 
         $dates = [];
         if ($activePeriod && $selectedMonth) {
