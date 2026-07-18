@@ -2835,14 +2835,22 @@ class DashboardController extends Controller
             foreach ($request->scores as $studentId => $dateScores) {
                 foreach ($dateScores as $date => $score) {
                     $note = $request->input("notes.{$studentId}.{$date}") ?? null;
-                    MatriculationScore::updateOrCreate([
-                        'matriculation_student_id' => $studentId,
-                        'matriculation_aspect_id' => $request->matriculation_aspect_id,
-                        'evaluation_date' => $date,
-                    ], [
-                        'score' => $score,
-                        'notes' => $note,
-                    ]);
+                    if ($score === null || $score === '') {
+                        MatriculationScore::where([
+                            'matriculation_student_id' => $studentId,
+                            'matriculation_aspect_id' => $request->matriculation_aspect_id,
+                            'evaluation_date' => $date,
+                        ])->delete();
+                    } else {
+                        MatriculationScore::updateOrCreate([
+                            'matriculation_student_id' => $studentId,
+                            'matriculation_aspect_id' => $request->matriculation_aspect_id,
+                            'evaluation_date' => $date,
+                        ], [
+                            'score' => $score,
+                            'notes' => $note,
+                        ]);
+                    }
                 }
             }
         }
@@ -3599,14 +3607,22 @@ class DashboardController extends Controller
             foreach ($request->scores as $studentId => $dateScores) {
                 foreach ($dateScores as $date => $score) {
                     $note = $request->input("notes.{$studentId}.{$date}") ?? null;
-                    EducationScore::updateOrCreate([
-                        'education_student_id' => $studentId,
-                        'education_aspect_id' => $request->education_aspect_id,
-                        'evaluation_date' => $date,
-                    ], [
-                        'score' => $score,
-                        'notes' => $note,
-                    ]);
+                    if ($score === null || $score === '') {
+                        EducationScore::where([
+                            'education_student_id' => $studentId,
+                            'education_aspect_id' => $request->education_aspect_id,
+                            'evaluation_date' => $date,
+                        ])->delete();
+                    } else {
+                        EducationScore::updateOrCreate([
+                            'education_student_id' => $studentId,
+                            'education_aspect_id' => $request->education_aspect_id,
+                            'evaluation_date' => $date,
+                        ], [
+                            'score' => $score,
+                            'notes' => $note,
+                        ]);
+                    }
                 }
             }
         }

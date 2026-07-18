@@ -490,6 +490,10 @@
                                                                     $stTarget++;
                                                                 }
                                                             }
+                                                        } elseif ($selectedAspect->input_type === 'counter') {
+                                                            $stActiveScores = $stWeekScores->whereIn('evaluation_date', $stWeekActiveDays);
+                                                            $stReal = $stActiveScores->sum('score') ?? 0;
+                                                            $stTarget = (float)($selectedAspect->target_weekly ?? 3);
                                                         } else {
                                                             $stActiveScores = $stWeekScores->whereIn('evaluation_date', $stWeekActiveDays);
                                                             $stReal = $stActiveScores->avg('score') ?? 0;
@@ -536,11 +540,15 @@
                                                                 $stTarget++;
                                                             }
                                                         }
-                                                    } else {
-                                                        $stActiveScores = $st->scores->whereIn('evaluation_date', $dates)->whereIn('evaluation_date', $stAllActiveDays);
-                                                        $stReal = $stActiveScores->avg('score') ?? 0;
-                                                        $stTarget = (float)($selectedAspect->target_weekly ?? 80);
-                                                    }
+                                                    } elseif ($selectedAspect->input_type === 'counter') {
+                                                          $stActiveScores = $st->scores->whereIn('evaluation_date', $dates)->whereIn('evaluation_date', $stAllActiveDays);
+                                                          $stReal = $stActiveScores->sum('score') ?? 0;
+                                                          $stTarget = (float)($selectedAspect->target_weekly ?? 3);
+                                                     } else {
+                                                          $stActiveScores = $st->scores->whereIn('evaluation_date', $dates)->whereIn('evaluation_date', $stAllActiveDays);
+                                                          $stReal = $stActiveScores->avg('score') ?? 0;
+                                                          $stTarget = (float)($selectedAspect->target_weekly ?? 80);
+                                                     }
                                                     $mStudentReals[] = $stReal;
                                                     $mStudentTargets[] = $stTarget;
                                                     $mStudentPercentages[] = $stTarget > 0 ? ($stReal / $stTarget) * 100 : 0;
